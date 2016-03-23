@@ -1,0 +1,235 @@
+<com.barnewall.matthew.musicplayer.SlidingLinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginLeft="0dp"
+    android:layout_marginRight="0dp"
+    android:layout_marginTop="0dp"
+    android:layout_marginBottom="0dp"
+    android:background="@color/backgroundColor"
+    android:clickable="true">
+
+
+
+    <RelativeLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:visibility="visible">
+
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true">
+
+
+            <SeekBar
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
+                android:id="@+id/timeSeekBar" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/timeSeekBar"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentLeft="true"
+                android:id="@+id/currentTimeTextView"
+                android:layout_marginLeft="15dp"
+                android:textColor="@color/textColor"
+                android:text="0:00" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/timeSeekBar"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="15dp"
+                android:id="@+id/endTimeTextView"
+                android:textColor="@color/textColor" />
+
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/timeSeekBar">
+
+                <ImageButton
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:id="@+id/repeatImageButton"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:background="@drawable/ic_action_repeat"
+                    android:scaleType="centerCrop"
+                    android:layout_marginRight="15dp" />
+
+                <ImageButton
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:id="@+id/shuffleImageButton"
+                    android:layout_alignBottom="@+id/repeatImageButton"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_centerVertical="true"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/ic_action_shuffle"
+                    android:layout_marginLeft="15dp" />
+
+                <ImageButton
+                    android:layout_width="75dp"
+                    android:layout_height="100dp"
+                    android:id="@+id/playImageButton"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginRight="15dp"
+                    android:scaleType="centerCrop"
+                    android:layout_centerInParent="true"
+                    android:background="@drawable/ic_action_pause"
+                    android:onClick="togglePlay" />
+
+                <ImageButton
+                    android:layout_width="50dp"
+                    android:layout_height="75dp"
+                    android:id="@+id/backImageButton"
+                    android:scaleType="centerCrop"
+                    android:layout_toLeftOf="@id/playImageButton"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/ic_action_previous"
+                    android:onClick="handleBack" />
+
+                <ImageButton
+                    android:layout_width="50dp"
+                    android:layout_height="75dp"
+                    android:id="@+id/nextImageButton"
+                    android:scaleType="centerCrop"
+                    android:layout_toRightOf="@id/playImageButton"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/ic_action_next"
+                    android:onClick="handleSkip" />
+            </RelativeLayout>
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_centerHorizontal="true"
+            android:id="@+id/albumWrapperLinearLayout">
+
+            <ImageView
+                android:layout_width="@dimen/albumArt"
+                android:layout_height="@dimen/albumArt"
+                android:id="@+id/albumImageView"
+                android:background="#555555"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="65dp"
+                android:layout_marginBottom="15dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/songNameTextView"
+                android:textSize="40sp"
+                android:gravity="bottom"
+                android:singleLine="true"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit ="marquee_forever"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:scrollHorizontally="true"
+                android:textColor="@color/textColor"
+                android:shadowColor="#000000"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="1"
+                android:layout_marginLeft="16dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/artistNameTextView"
+                android:textIsSelectable="false"
+                android:textSize="20dp"
+                android:gravity="bottom"
+                android:singleLine="true"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit ="marquee_forever"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:scrollHorizontally="true"
+                android:textColor="@color/textColor"
+                android:shadowColor="#000000"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="1"
+                android:layout_marginLeft="16dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/albumNameTextView"
+                android:textSize="20dp"
+                android:gravity="bottom"
+                android:singleLine="true"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit ="marquee_forever"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:scrollHorizontally="true"
+                android:textColor="@color/textColor"
+                android:shadowColor="#000000"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="1"
+                android:layout_marginLeft="16dp" />
+
+        </LinearLayout>
+
+
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="@dimen/iconSize"
+            android:gravity="center_vertical"
+            android:id="@+id/collapseBarRelativeLayout"
+            style="@style/CollapseLayout"
+            android:descendantFocusability="blocksDescendants"
+            android:background="@color/expandPlaybackTransparentColor"
+            android:onClick="togglePlayback">
+
+            <ImageButton
+                android:layout_width="@dimen/iconSize"
+                android:layout_height="@dimen/iconSize"
+                android:scaleType="centerCrop"
+                android:id="@+id/collapsePlaybackButton"
+                android:background="@drawable/ic_action_expand"
+                android:onClick="togglePlayback" />
+
+            <ImageButton
+                android:layout_width="@dimen/iconSize"
+                android:layout_height="@dimen/iconSize"
+                android:id="@+id/playbackSettingsImageButton"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/ic_action_overflow" />
+
+            <ImageButton
+                android:layout_width="@dimen/iconSize"
+                android:layout_height="@dimen/iconSize"
+                android:id="@+id/imageButton"
+                android:layout_alignParentTop="true"
+                android:layout_toLeftOf="@+id/playbackSettingsImageButton"
+                android:layout_toStartOf="@+id/playbackSettingsImageButton"
+                android:background="@drawable/ic_action_add_to_queue"
+                android:onClick="showNowPlaying" />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</com.barnewall.matthew.musicplayer.SlidingLinearLayout>

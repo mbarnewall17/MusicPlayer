@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="fill_parent"
+    android:layout_height="60dp"
+    android:background="@color/backgroundColor"
+    android:descendantFocusability="blocksDescendants">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
+        android:layout_weight="1"
+        android:layout_marginLeft="15dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/genreNameTextview"
+            android:textColor="@color/textColor"
+            android:textSize="18dp"
+            android:gravity="bottom"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit ="marquee_forever"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:scrollHorizontally="true"
+            android:layout_marginTop="5dp" />
+    </LinearLayout>
+
+    <ImageButton
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:id="@+id/popMenuButton"
+        android:background="@drawable/ic_action_overflow"
+        android:onClick="createPopUp"
+        android:scaleType="centerCrop"
+        android:layout_gravity="center_vertical" />
+
+</LinearLayout>

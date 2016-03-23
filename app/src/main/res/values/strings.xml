@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Music Player</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string-array name="navigation_drawer_choices">
+        <item>Albums</item>
+        <item>Artists</item>
+        <item>Playlists</item>
+        <item>Songs</item>
+        <item>Genres</item>
+        <item>Folders</item>
+        <item>Settings</item>
+
+    </string-array>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="album_artwork">Album Artwork</string>
+    <string name="a">\@stringsalbum_artwork</string>
+    <string name="title_activity_now_playing">NowPlayingActivity</string>
+</resources>

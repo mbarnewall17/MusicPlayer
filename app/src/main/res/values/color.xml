@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="navColor" type="color">#FF8800</item>
+    <item name="selectedColor" type="color">#1F77B4</item>
+    <item name="textColor" type="color">#FFFFFF</item>
+    <item name="backgroundColor" type="color">#1F77B4</item>
+    <item name="expandPlaybackColor" type="color">#FF7F0E</item>
+    <item name="expandPlaybackTransparentColor" type="color">#11000000</item>
+    <item name="black" type="color">#000000</item>
+    <item name="white" type="color">#FFFFFF</item>
+</resources>
