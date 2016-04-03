@@ -9,7 +9,6 @@ import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.app.Fragment;
-import android.nfc.Tag;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.MediaStore;
@@ -21,6 +20,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
@@ -39,7 +39,6 @@ import com.barnewall.matthew.musicplayer.Playlist.PlaylistFragment;
 import com.barnewall.matthew.musicplayer.Song.SongFragment;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity implements
@@ -48,25 +47,31 @@ public class MainActivity extends ActionBarActivity implements
         NewSongListener {
 
     // Instance Variables
+
+    // Navigation Menu
     private DrawerLayout                drawerLayout;
     private ListView                    drawerListView;
     private ActionBarDrawerToggle       actionBarDrawerToggle;
+
+    // Currently selected category in the navigation menu
     private MusicCategories             selectedCategory;
     private View                        selectedCategoryView;
-    private boolean                     playbackShowing;
+
+    // Array containing where clause for the MusicFragment subclasses
+    // First index is the where string, all subsequent indexes are the values for the where string
     private String[]                    where;
     private MusicCategories             whereCategory;
+
+    // Music playback controls
     private MediaPlayerManager          manager;
+
+    // Variables for interacting with service that plays the music
     private IBinder                     service;
     private ServiceConnection           connection;
 
+    // Categories in the navigatino menu
     public enum MusicCategories{
         ALBUMS,ARTISTS,PLAYLISTS,SONGS,GENRES,FOLDERS,SETTINGS
-    }
-
-    public interface PlayAndPauseListener{
-        public void pause();
-        public void play();
     }
 
     @Override
@@ -98,11 +103,10 @@ public class MainActivity extends ActionBarActivity implements
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
-        // Initialize instance variables
+        // Where variables
         where = null;
         whereCategory = MusicCategories.ARTISTS;
         selectedCategory = MusicCategories.ARTISTS;
-        playbackShowing = false;
     }
 
     /*
@@ -194,14 +198,47 @@ public class MainActivity extends ActionBarActivity implements
         return super.onOptionsItemSelected(item);
     }
 
+
+    private float y1,y2;
+    static final int MIN_DISTANCE = 50;
+    /*
+     * Toggles between the main activity and the playback fragment
+     */
     public void togglePlayback(View view){
+
         Fragment f = getFragmentManager()
                 .findFragmentByTag("Playback");
+
+        // If the Playback fragment exists on the backstack pop it off
         if (f != null) {
             getFragmentManager().popBackStack();
             getSupportActionBar().show();
+
+            // Music is playing or could be, show the playback bar
             findViewById(R.id.playbackRelativeLayout).setVisibility(View.VISIBLE);
-        } else {
+
+            // Adds the ability to swipe to open the playback bar
+            findViewById(R.id.playbackRelativeLayout).setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    switch (event.getAction()){
+                        case(MotionEvent.ACTION_DOWN):
+                            y1 = event.getY();
+                            break;
+                        case(MotionEvent.ACTION_UP):
+                            y2 = event.getY();
+                            if((y1-y2) > MIN_DISTANCE){
+                                togglePlayback(null);
+                            }
+                    }
+                    return false;
+                }
+            });
+        }
+
+        // If the playback fragment does not exist on the backstack, create a new instance of
+        //    the playback fragment and replace the current fragment with it
+        else {
             getFragmentManager().beginTransaction()
                     .setCustomAnimations(R.animator.slide_up_below,
                             R.animator.slide_up,
@@ -214,17 +251,11 @@ public class MainActivity extends ActionBarActivity implements
             getSupportActionBar().hide();
             findViewById(R.id.playbackRelativeLayout).setVisibility(View.GONE);
         }
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                playbackShowing = !playbackShowing;
-            }
-        }, 400);
 
 
     }
 
+    // Creates a popup menu of options for the song, artist, album
     public void createPopUp(View view){
         PopupMenu popup = new PopupMenu(this, view);
         MenuInflater inflater = popup.getMenuInflater();
@@ -232,6 +263,7 @@ public class MainActivity extends ActionBarActivity implements
         popup.show();
     }
 
+    // Change the current fragment based on the category passed in
     public void changeCategory(MusicCategories category){
         where = null;
         whereCategory = MusicCategories.SETTINGS;
@@ -264,7 +296,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     private void handleClick(String[] where, String fragmentName, String fragmentID){
-        ((LinearLayout) findViewById(R.id.blockClicksLinearLayout)).setClickable(true);
+        findViewById(R.id.blockClicksLinearLayout).setClickable(true);
         this.where = where;
         getFragmentManager().findFragmentById(R.id.fragment_holder).
                 getFragmentManager().beginTransaction()
@@ -320,7 +352,7 @@ public class MainActivity extends ActionBarActivity implements
             public void onServiceConnected(ComponentName name, IBinder servic) {
                 service = servic;
                 manager = ((MusicPlayerService.MyBinder)service).getService().startPlaying(list, position, MainActivity.this);
-                if(!playbackShowing){
+                if(!isPlaybackShowing()){
                     findViewById(R.id.playbackRelativeLayout).setVisibility(View.VISIBLE);
                     togglePlayback(null);
                 }
@@ -355,15 +387,14 @@ public class MainActivity extends ActionBarActivity implements
         if (getFragmentManager().getBackStackEntryCount() == 1) {
             actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
         }
-        if(playbackShowing){
+        if(isPlaybackShowing()){
             togglePlayback(null);
         }
         else {
             if (getFragmentManager().getBackStackEntryCount() != 0) {
                 setTitle(getFragmentManager().getBackStackEntryAt(0).getName());
                 getFragmentManager().popBackStack();
-                if (playbackShowing) {
-                    playbackShowing = !playbackShowing;
+                if (isPlaybackShowing()) {
                     getSupportActionBar().show();
                 }
             } else {
@@ -417,13 +448,13 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public void loadNewSongInfo(SongListViewItem newSong){
-        if(playbackShowing){
+        if(isPlaybackShowing()){
             ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).setInfo(newSong);
         }
     }
 
     public boolean isPlaybackShowing(){
-        return playbackShowing;
+        return findViewById(R.id.playImageButton) != null;
     }
     public int getDuration(){
        return manager.getDuration();
@@ -451,7 +482,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public void onFinish(){
-        if(playbackShowing){
+        if(isPlaybackShowing()){
             ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).finished();
         }
         getApplicationContext().unbindService(connection);

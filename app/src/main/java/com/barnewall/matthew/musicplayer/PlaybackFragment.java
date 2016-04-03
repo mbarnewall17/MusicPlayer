@@ -45,12 +45,7 @@ import java.util.Random;
 
 
 /**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link PlaybackFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link PlaybackFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * Fragment that handles playback of music
  */
 public class PlaybackFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
@@ -147,6 +142,7 @@ public class PlaybackFragment extends Fragment {
         public void seekTo(int position);
         public boolean isPlaybackShowing();
         public boolean isPaused();
+        public void togglePlayback(View view);
     }
 
     @Override
@@ -158,19 +154,45 @@ public class PlaybackFragment extends Fragment {
     private Runnable r;
     private SeekBar seekBar;
     private String duration;
+    private float y1,y2;
+    static final int MIN_DISTANCE = 50;
+
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Connect seekbar resource to variable
         seekBar = ((SeekBar) getActivity().findViewById(R.id.timeSeekBar));
 
+        // Adds the ability to close the fragment by swiping
+        getActivity().findViewById(R.id.collapseBarRelativeLayout).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()){
+                    case(MotionEvent.ACTION_DOWN):
+                        y1 = event.getY();
+                        break;
+                    case(MotionEvent.ACTION_UP):
+                        y2 = event.getY();
+                        if((y2-y1) > MIN_DISTANCE){
+                            mListener.togglePlayback(null);
+                        }
+                }
+                return false;
+            }
+        });
+
+        // Set up the views with the correct info
         setInfo(mListener.getNowPlaying());
-        ((ImageButton) getActivity().findViewById(R.id.playImageButton)).setOnTouchListener(new View.OnTouchListener() {
+
+        // Turns the button black while it is being held down
+        getActivity().findViewById(R.id.playImageButton).setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    ((ImageButton) v).getBackground().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
+                    v.getBackground().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                    ((ImageButton) v).getBackground().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP);
+                    v.getBackground().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP);
                 }
                 return false;
             }
@@ -210,26 +232,27 @@ public class PlaybackFragment extends Fragment {
                 }
             };
 
+            // See if handler callbacks are necessary right now
             assessHandler();
 
             // Gets the album art and sets the view as well as the background using it
             Bitmap albumArt = GlobalFunctions.getBitmapFromID(nowPlaying.getAlbumID(), 300, getActivity());
             ((ImageView) getView().findViewById(R.id.albumImageView)).setImageBitmap(albumArt);
             BitmapDrawable modifiedArt = new BitmapDrawable(BlurBuilder.blur(getActivity(), albumArt));
-            ((LinearLayout) getView().findViewById(R.id.albumWrapperLinearLayout)).setBackground(modifiedArt);
+            getView().findViewById(R.id.albumWrapperLinearLayout).setBackground(modifiedArt);
 
             // Sets the background of the collapseBarRelativeLayout
             Drawable drawable = getResources().getDrawable(R.drawable.gradient);
             drawable.setAlpha(80);
             getView().findViewById(R.id.collapseBarRelativeLayout).setBackground(drawable);
 
-            // Sets the song, artist, and album textviews
+            // Sets the song, artist, and album TextViews
             ((TextView) getView().findViewById(R.id.songNameTextView)).setText(nowPlaying.getTitle());
-            ((TextView) getView().findViewById(R.id.songNameTextView)).setSelected(true);
+            getView().findViewById(R.id.songNameTextView).setSelected(true);
             ((TextView) getView().findViewById(R.id.albumNameTextView)).setText(nowPlaying.getAlbumName());
-            ((TextView) getView().findViewById(R.id.albumNameTextView)).setSelected(true);
+            getView().findViewById(R.id.albumNameTextView).setSelected(true);
             ((TextView) getView().findViewById(R.id.artistNameTextView)).setText(nowPlaying.getArtistName());
-            ((TextView) getView().findViewById(R.id.artistNameTextView)).setSelected(true);
+            getView().findViewById(R.id.artistNameTextView).setSelected(true);
         }
     }
 
