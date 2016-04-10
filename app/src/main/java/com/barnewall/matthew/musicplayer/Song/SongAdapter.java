@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.barnewall.matthew.musicplayer.R;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by Matthew on 8/5/2015.
@@ -19,11 +20,17 @@ public class SongAdapter extends BaseAdapter{
     private Context context;
     private ArrayList<SongListViewItem> data;
     private LayoutInflater layoutInflater;
+    final int INVALID_ID = -1;
+
+    HashMap<SongListViewItem, Integer> mIdMap = new HashMap<SongListViewItem, Integer>();
 
     public SongAdapter(ArrayList<SongListViewItem> items, Context context){
         this.context = context;
         this.data = items;
         this.layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        for (int i = 0; i < items.size(); ++i) {
+            mIdMap.put(items.get(i), i);
+        }
     }
 
     @Override
@@ -38,7 +45,11 @@ public class SongAdapter extends BaseAdapter{
 
     @Override
     public long getItemId(int position) {
-        return 0;
+        if (position < 0 || position >= mIdMap.size()) {
+            return INVALID_ID;
+        }
+        SongListViewItem item = (SongListViewItem) getItem(position);
+        return mIdMap.get(item);
     }
 
     @Override

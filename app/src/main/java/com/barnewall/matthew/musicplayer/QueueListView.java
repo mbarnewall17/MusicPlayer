@@ -6,12 +6,14 @@ import android.animation.ObjectAnimator;
 import android.animation.TypeEvaluator;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
@@ -23,14 +25,15 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 
 import com.barnewall.matthew.musicplayer.Song.SongAdapter;
+import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
 import java.util.ArrayList;
 
 /**
- * Created by Matthew on 3/2/2016.
+ * The dynamic listview is an extension of listview that supports cell dragging
+ * and swapping.
  */
 public class QueueListView extends ListView {
-
 
     private final int SMOOTH_SCROLL_AMOUNT_AT_EDGE = 15;
     private final int MOVE_DURATION = 150;
@@ -61,8 +64,9 @@ public class QueueListView extends ListView {
 
     private boolean mIsWaitingForScrollFinish = false;
     private int mScrollState = OnScrollListener.SCROLL_STATE_IDLE;
+    private ArrayList<SongListViewItem> mArrayList;
 
-    public QueueListView(Context context){
+    public QueueListView(Context context) {
         super(context);
         init(context);
     }
@@ -107,80 +111,53 @@ public class QueueListView extends ListView {
 
     private BitmapDrawable getAndAddHoverView(View v) {
 
-        // Get view dimensions
-        int width = v.getWidth();
-        int height = v.getHeight();
+        int w = v.getWidth();
+        int h = v.getHeight();
         int top = v.getTop();
         int left = v.getLeft();
 
-        // Get bitmap of the view with a thicker border
         Bitmap b = getBitmapWithBorder(v);
 
-        // Create drawable from bitmap
         BitmapDrawable drawable = new BitmapDrawable(getResources(), b);
 
-        // Change bounds
-        mHoverCellOriginalBounds = new Rect(left, top, left + width, top + height);
+        mHoverCellOriginalBounds = new Rect(left, top, left + w, top + h);
         mHoverCellCurrentBounds = new Rect(mHoverCellOriginalBounds);
 
-        // Set bounds of the drawable
         drawable.setBounds(mHoverCellCurrentBounds);
 
         return drawable;
     }
 
-    private Bitmap getBitmapWithBorder(View v){
-
-        //Get the bitmap from view and canvas from bitmap
+    private Bitmap getBitmapWithBorder(View v) {
         Bitmap bitmap = getBitmapFromView(v);
         Canvas can = new Canvas(bitmap);
 
-        // Create rectangle with dimensions of view
-        Rect rect = new Rect(0,0,bitmap.getWidth(), bitmap.getHeight());
+        Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
 
-        // Set up paint
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(LINE_THICKNESS);
         paint.setColor(Color.BLACK);
 
-        // Draw bitmap on the canvas
         can.drawBitmap(bitmap, 0, 0, null);
-
-        // Draw rectangle over the bitmap
         can.drawRect(rect, paint);
 
         return bitmap;
     }
 
-    private Bitmap getBitmapFromView(View view){
-
-        // Create bitmap size of the view
-        Bitmap bitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
-
-        // Create a canvas
+    private Bitmap getBitmapFromView(View v) {
+        Bitmap bitmap = Bitmap.createBitmap(v.getWidth(), v.getHeight(),
+                Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-
-        // Draw view onto the canvas
-        view.draw(canvas);
+        v.draw(canvas);
         return bitmap;
     }
 
-    private void updateNeighborViewForID(long itemID){
+    private void updateNeighborViewsForID(long itemID) {
         int position = getPositionForID(itemID);
         SongAdapter adapter = ((SongAdapter) getAdapter());
         mAboveItemId = adapter.getItemId(position - 1);
         mBelowItemId = adapter.getItemId(position + 1);
-    }
-
-    public int getPositionForID(long itemID){
-        View v = getViewForID(itemID);
-        if(v == null){
-            return -1;
-        }
-        else{
-            return getPositionForView(v);
-        }
     }
 
     public View getViewForID(long itemID) {
@@ -197,10 +174,27 @@ public class QueueListView extends ListView {
         return null;
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event){
+    public int getPositionForID(long itemID) {
+        View v = getViewForID(itemID);
+        if (v == null) {
+            return -1;
+        } else {
+            return getPositionForView(v);
+        }
+    }
 
-        switch(event.getAction() & MotionEvent.ACTION_MASK) {
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        super.dispatchDraw(canvas);
+        if (mHoverCell != null) {
+            mHoverCell.draw(canvas);
+        }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+
+        switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
                 mDownX = (int) event.getX();
                 mDownY = (int) event.getY();
@@ -217,9 +211,9 @@ public class QueueListView extends ListView {
                 int deltaY = mLastEventY - mDownY;
 
                 if (mCellIsMobile) {
-                    mHoverCellCurrentBounds.offsetTo(mHoverCellOriginalBounds.left, mHoverCellOriginalBounds.top + deltaY + mTotalOffset);
+                    mHoverCellCurrentBounds.offsetTo(mHoverCellOriginalBounds.left,
+                            mHoverCellOriginalBounds.top + deltaY + mTotalOffset);
                     mHoverCell.setBounds(mHoverCellCurrentBounds);
-
                     invalidate();
 
                     handleCellSwitch();
@@ -238,8 +232,8 @@ public class QueueListView extends ListView {
                 break;
             case MotionEvent.ACTION_POINTER_UP:
                 pointerIndex = (event.getAction() & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
-                final int pointerID = event.getPointerId(pointerIndex);
-                if (pointerID == mActivePointerId) {
+                final int pointerId = event.getPointerId(pointerIndex);
+                if (pointerId == mActivePointerId) {
                     touchEventsEnded();
                 }
                 break;
@@ -250,7 +244,7 @@ public class QueueListView extends ListView {
         return super.onTouchEvent(event);
     }
 
-    private void handleCellSwitch(){
+    private void handleCellSwitch() {
         final int deltaY = mLastEventY - mDownY;
         int deltaYTotal = mHoverCellOriginalBounds.top + mTotalOffset + deltaY;
 
@@ -258,76 +252,96 @@ public class QueueListView extends ListView {
         View mobileView = getViewForID(mMobileItemId);
         View aboveView = getViewForID(mAboveItemId);
 
-        boolean isBelow = (belowView != null) && (deltaYTotal > belowView.getTop());
-        boolean isAbove = (aboveView != null) && (deltaYTotal < aboveView.getTop());
+        boolean isBelow = (belowView != null)
+                && (deltaYTotal > belowView.getTop());
+        boolean isAbove = (aboveView != null)
+                && (deltaYTotal < aboveView.getTop());
 
-        final long switchItemID = isBelow ? mBelowItemId : mAboveItemId;
-        View switchView = isBelow ? belowView : aboveView;
-        final int originalItem = getPositionForView(mobileView);
+        if (isBelow || isAbove) {
 
-        if (switchView != null) {
-            updateNeighborViewForID(mMobileItemId);
-            return;
-        }
+            final long switchItemID = isBelow ? mBelowItemId : mAboveItemId;
+            View switchView = isBelow ? belowView : aboveView;
+            final int originalItem = getPositionForView(mobileView);
 
-        ((BaseAdapter) getAdapter()).notifyDataSetChanged();
-
-        mDownY = mLastEventY;
-
-        final int switchViewstartTop = switchView.getTop();
-
-        mobileView.setVisibility(View.VISIBLE);
-        switchView.setVisibility(View.INVISIBLE);
-
-        updateNeighborViewForID(mMobileItemId);
-
-        final ViewTreeObserver observer = getViewTreeObserver();
-        observer.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener(){
-            @Override
-            public boolean onPreDraw() {
-                observer.removeOnPreDrawListener(this);
-
-                View switchView = getViewForID(switchItemID);
-
-                mTotalOffset += deltaY;
-
-                int switchViewNewTop = switchView.getTop();
-                int delta = switchViewstartTop - switchViewNewTop;
-
-                switchView.setTranslationY(delta);
-
-                ObjectAnimator animator = ObjectAnimator.ofFloat(switchView, View.TRANSLATION_Y, 0);
-                animator.setDuration(MOVE_DURATION);
-                animator.start();
-
-                return true;
+            if (switchView == null) {
+                updateNeighborViewsForID(mMobileItemId);
+                return;
             }
 
-        });
+            swapElements(mArrayList, originalItem,
+                    getPositionForView(switchView));
+
+            ((BaseAdapter) getAdapter()).notifyDataSetChanged();
+
+            updateService();
+
+            mDownY = mLastEventY;
+
+            final int switchViewStartTop = switchView.getTop();
+
+            mobileView.setVisibility(View.VISIBLE);
+            switchView.setVisibility(View.INVISIBLE);
+
+            updateNeighborViewsForID(mMobileItemId);
+
+            final ViewTreeObserver observer = getViewTreeObserver();
+            observer.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                public boolean onPreDraw() {
+                    observer.removeOnPreDrawListener(this);
+
+                    View switchView = getViewForID(switchItemID);
+
+                    mTotalOffset += deltaY;
+
+                    int switchViewNewTop = switchView.getTop();
+                    int delta = switchViewStartTop - switchViewNewTop;
+
+                    switchView.setTranslationY(delta);
+
+                    ObjectAnimator animator = ObjectAnimator.ofFloat(
+                            switchView, View.TRANSLATION_Y, 0);
+                    animator.setDuration(MOVE_DURATION);
+                    animator.start();
+
+                    return true;
+                }
+            });
+        }
     }
 
-    private void touchEventsEnded(){
+    private void swapElements(ArrayList arrayList, int indexOne, int indexTwo) {
+        Object temp = arrayList.get(indexOne);
+        arrayList.set(indexOne, arrayList.get(indexTwo));
+        arrayList.set(indexTwo, temp);
+    }
+
+    private void touchEventsEnded() {
         final View mobileView = getViewForID(mMobileItemId);
-        if(mCellIsMobile || mIsWaitingForScrollFinish) {
+        if (mCellIsMobile || mIsWaitingForScrollFinish) {
             mCellIsMobile = false;
             mIsWaitingForScrollFinish = false;
             mIsMobileScrolling = false;
             mActivePointerId = INVALID_POINTER_ID;
+
             if (mScrollState != OnScrollListener.SCROLL_STATE_IDLE) {
                 mIsWaitingForScrollFinish = true;
                 return;
             }
 
-            mHoverCellCurrentBounds.offsetTo(mHoverCellOriginalBounds.left, mobileView.getTop());
+            mHoverCellCurrentBounds.offsetTo(mHoverCellOriginalBounds.left,
+                    mobileView.getTop());
 
             ObjectAnimator hoverViewAnimator = ObjectAnimator.ofObject(
-                    mHoverCell, "bounds", sBoundEvaluator, mHoverCellCurrentBounds);
-            hoverViewAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator animation) {
-                    invalidate();
-                }
-            });
+                    mHoverCell, "bounds", sBoundEvaluator,
+                    mHoverCellCurrentBounds);
+            hoverViewAnimator
+                    .addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                        @Override
+                        public void onAnimationUpdate(
+                                ValueAnimator valueAnimator) {
+                            invalidate();
+                        }
+                    });
             hoverViewAnimator.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationStart(Animator animation) {
@@ -346,8 +360,7 @@ public class QueueListView extends ListView {
                 }
             });
             hoverViewAnimator.start();
-        }
-        else{
+        } else {
             touchEventsCancelled();
         }
     }
@@ -367,13 +380,13 @@ public class QueueListView extends ListView {
         mActivePointerId = INVALID_POINTER_ID;
     }
 
-    private final static TypeEvaluator sBoundEvaluator= new TypeEvaluator() {
-
+    private final static TypeEvaluator sBoundEvaluator = new TypeEvaluator() {
         public Rect evaluate(float fraction, Rect startValue, Rect endValue) {
             return new Rect(interpolate(startValue.left, endValue.left,
                     fraction), interpolate(startValue.top, endValue.top,
                     fraction), interpolate(startValue.right, endValue.right,
-                    fraction), interpolate(startValue.bottom, endValue.bottom,fraction));
+                    fraction), interpolate(startValue.bottom, endValue.bottom,
+                    fraction));
         }
 
         public int interpolate(int start, int end, float fraction) {
@@ -382,6 +395,7 @@ public class QueueListView extends ListView {
 
         @Override
         public Object evaluate(float arg0, Object arg1, Object arg2) {
+            // TODO Auto-generated method stub
             return null;
         }
     };
@@ -398,12 +412,12 @@ public class QueueListView extends ListView {
         int hoverViewTop = r.top;
         int hoverHeight = r.height();
 
-        if (hoverViewTop<= 0 &&offset> 0) {
+        if (hoverViewTop <= 0 && offset > 0) {
             smoothScrollBy(-mSmoothScrollAmountAtEdge, 0);
             return true;
         }
 
-        if (hoverViewTop + hoverHeight>= height&& (offset + extent) <range) {
+        if (hoverViewTop + hoverHeight >= height && (offset + extent) < range) {
             smoothScrollBy(mSmoothScrollAmountAtEdge, 0);
             return true;
         }
@@ -442,19 +456,21 @@ public class QueueListView extends ListView {
             mScrollState = scrollState;
             isScrollCompleted();
         }
+
         private void isScrollCompleted() {
-            if (mCurrentVisibleItemCount> 0
-                    &&mCurrentScrollState == SCROLL_STATE_IDLE) {
-                if (mCellIsMobile&&mIsMobileScrolling) {
+            if (mCurrentVisibleItemCount > 0
+                    && mCurrentScrollState == SCROLL_STATE_IDLE) {
+                if (mCellIsMobile && mIsMobileScrolling) {
                     handleMobileCellScroll();
                 } else if (mIsWaitingForScrollFinish) {
                     touchEventsEnded();
                 }
             }
         }
+
         public void checkAndHandleFirstVisibleCellChange() {
             if (mCurrentFirstVisibleItem != mPreviousFirstVisibleItem) {
-                if (mCellIsMobile&&mMobileItemId != INVALID_ID) {
+                if (mCellIsMobile && mMobileItemId != INVALID_ID) {
                     updateNeighborViewsForID(mMobileItemId);
                     handleCellSwitch();
                 }
@@ -467,7 +483,7 @@ public class QueueListView extends ListView {
             int previousLastVisibleItem = mPreviousFirstVisibleItem
                     + mPreviousVisibleItemCount;
             if (currentLastVisibleItem != previousLastVisibleItem) {
-                if (mCellIsMobile&&mMobileItemId != INVALID_ID) {
+                if (mCellIsMobile && mMobileItemId != INVALID_ID) {
                     updateNeighborViewsForID(mMobileItemId);
                     handleCellSwitch();
                 }
@@ -475,27 +491,18 @@ public class QueueListView extends ListView {
         }
     };
 
-    private void swapElements(ArrayList arrayList, int indexOne, int indexTwo) {
-        Object temp = arrayList.get(indexOne);
-        arrayList.set(indexOne, arrayList.get(indexTwo));
-        arrayList.set(indexTwo, temp);
+    public void setArrayList(ArrayList<SongListViewItem> arrayList){
+        mArrayList = arrayList;
     }
 
-    private void updateNeighborViewsForID(long itemID) {
-        int position = getPositionForID(itemID);
-        SongAdapter adapter = ((SongAdapter) getAdapter());
-        mAboveItemId = adapter.getItemId(position - 1);
-        mBelowItemId = adapter.getItemId(position + 1);
+    /*
+     * Notifies the MusicPlayerService that the queue of songs to play has changed
+     */
+    private void updateService(){
+        Intent updateIntent = new Intent();
+        updateIntent.setAction(MusicPlayerService.UPDATE_QUEUE);
+        updateIntent.putExtra(MusicPlayerService.UPDATE_QUEUE,mArrayList);
+        getContext().sendBroadcast(updateIntent);
+
     }
-
-    @Override
-    protected void dispatchDraw(Canvas canvas) {
-        super.dispatchDraw(canvas);
-        if (mHoverCell != null) {
-            mHoverCell.draw(canvas);
-        }
-    }
-
-
-
 }

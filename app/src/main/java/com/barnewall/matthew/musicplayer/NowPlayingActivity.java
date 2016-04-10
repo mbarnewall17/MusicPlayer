@@ -19,11 +19,17 @@ public class NowPlayingActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_now_playing);
 
+        // Get the queue of songs
         queue = (ArrayList<SongListViewItem>) getIntent().getExtras().get("queue");
+
+        // Create the adapter
         SongAdapter adapter = new SongAdapter(queue, this);
 
         QueueListView listView = (QueueListView) findViewById(R.id.queue_listview);
+
+        // Set the adapter and the arraylist
         listView.setAdapter(adapter);
+        listView.setArrayList(queue);
 
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
     }

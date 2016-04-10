@@ -202,4 +202,15 @@ public class MediaPlayerManager{
         return nowPlayingBoolean;
     }
 
+    /*
+     * Changes queue to the arraylist of songs passed in.
+     * Sets the nowPlayingPosition equal to the position of now playing in the new queue
+     * TODO: Create a new listviewitem for this queue, making sure to override compareTo
+     *
+     * @param newQueue, The arraylist of the new queue
+     */
+    public void setQueue(ArrayList<SongListViewItem> newQueue){
+        this.queue = newQueue;
+        nowPlayingPosition = this.queue.indexOf(nowPlaying);
+    }
 }
