@@ -32,6 +32,9 @@ import java.util.ArrayList;
 /**
  * The dynamic listview is an extension of listview that supports cell dragging
  * and swapping.
+ *
+ * Most of code taken from:
+ * https://github.com/android/platform_development/tree/master/samples/devbytes/animation/ListViewDraggingAnimation
  */
 public class QueueListView extends ListView {
 
