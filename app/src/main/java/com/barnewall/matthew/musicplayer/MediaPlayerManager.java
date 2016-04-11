@@ -209,8 +209,7 @@ public class MediaPlayerManager{
      *
      * @param newQueue, The arraylist of the new queue
      */
-    public void setQueue(ArrayList<SongListViewItem> newQueue){
-        this.queue = newQueue;
+    public void updateNowPlayingPosition(){
         nowPlayingPosition = this.queue.indexOf(nowPlaying);
     }
 }

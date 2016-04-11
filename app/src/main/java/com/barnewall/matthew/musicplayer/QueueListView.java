@@ -499,12 +499,11 @@ public class QueueListView extends ListView {
     }
 
     /*
-     * Notifies the MusicPlayerService that the queue of songs to play has changed
+     * Updates the nowPlayingPosition of the MediaPlayerManager
      */
     private void updateService(){
         Intent updateIntent = new Intent();
         updateIntent.setAction(MusicPlayerService.UPDATE_QUEUE);
-        updateIntent.putExtra(MusicPlayerService.UPDATE_QUEUE,mArrayList);
         getContext().sendBroadcast(updateIntent);
 
     }

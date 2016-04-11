@@ -26,8 +26,7 @@ public class MusicPlayerService extends Service {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            ArrayList<SongListViewItem> newQueue = (ArrayList<SongListViewItem>) intent.getExtras().get(UPDATE_QUEUE);
-            manager.setQueue(newQueue);
+            manager.updateNowPlayingPosition();
         }
     };
 
@@ -40,6 +39,10 @@ public class MusicPlayerService extends Service {
 
     public MediaPlayerManager startPlaying(ArrayList<SongListViewItem> queue,int position, NewSongListener listener){
         return manager = new MediaPlayerManager(queue, position, listener);
+    }
+
+    public MediaPlayerManager getManager(){
+        return manager;
     }
 
     public class MyBinder extends Binder{

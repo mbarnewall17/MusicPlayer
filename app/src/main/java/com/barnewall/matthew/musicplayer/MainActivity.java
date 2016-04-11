@@ -473,7 +473,6 @@ public class MainActivity extends ActionBarActivity implements
 
     public void showNowPlaying(View view){
         Intent intent = new Intent(this, NowPlayingActivity.class);
-        intent.putExtra("queue", manager.getQueue());
         startActivity(intent);
     }
 
