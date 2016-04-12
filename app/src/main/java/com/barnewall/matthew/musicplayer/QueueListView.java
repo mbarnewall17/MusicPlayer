@@ -16,6 +16,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -24,7 +25,7 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 
-import com.barnewall.matthew.musicplayer.Song.SongAdapter;
+import com.barnewall.matthew.musicplayer.Song.NowPlayingAdapter;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
 import java.util.ArrayList;
@@ -85,32 +86,10 @@ public class QueueListView extends ListView {
     }
 
     public void init(Context context) {
-        setOnItemLongClickListener(mOnItemLongClickListener);
         setOnScrollListener(mScrollListener);
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         mSmoothScrollAmountAtEdge = (int) (SMOOTH_SCROLL_AMOUNT_AT_EDGE / metrics.density);
     }
-
-    private AdapterView.OnItemLongClickListener mOnItemLongClickListener = new AdapterView.OnItemLongClickListener() {
-        public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int pos,
-                                       long id) {
-            mTotalOffset = 0;
-
-            int position = pointToPosition(mDownX, mDownY);
-            int itemNum = position - getFirstVisiblePosition();
-
-            View selectedView = getChildAt(itemNum);
-            mMobileItemId = getAdapter().getItemId(position);
-            mHoverCell = getAndAddHoverView(selectedView);
-            selectedView.setVisibility(INVISIBLE);
-
-            mCellIsMobile = true;
-
-            updateNeighborViewsForID(mMobileItemId);
-
-            return true;
-        }
-    };
 
     private BitmapDrawable getAndAddHoverView(View v) {
 
@@ -158,14 +137,14 @@ public class QueueListView extends ListView {
 
     private void updateNeighborViewsForID(long itemID) {
         int position = getPositionForID(itemID);
-        SongAdapter adapter = ((SongAdapter) getAdapter());
+        NowPlayingAdapter adapter = ((NowPlayingAdapter) getAdapter());
         mAboveItemId = adapter.getItemId(position - 1);
         mBelowItemId = adapter.getItemId(position + 1);
     }
 
     public View getViewForID(long itemID) {
         int firstVisiblePosition = getFirstVisiblePosition();
-        SongAdapter adapter = ((SongAdapter) getAdapter());
+        NowPlayingAdapter adapter = ((NowPlayingAdapter) getAdapter());
         for (int i = 0; i < getChildCount(); i++) {
             View v = getChildAt(i);
             int position = firstVisiblePosition + i;
@@ -194,15 +173,39 @@ public class QueueListView extends ListView {
         }
     }
 
+    private boolean first = true;
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
                 mDownX = (int) event.getX();
                 mDownY = (int) event.getY();
+
+                int position = pointToPosition(mDownX, mDownY);
+                int itemNum = position - getFirstVisiblePosition();
+
+                // Get the slideImageView of the clicked listview item
+                View selectedView = getChildAt(itemNum);
+                SlideImageView mDownView = (SlideImageView) selectedView.findViewById(R.id.slideButtonImageView);
+
+                // If this is the first time, check if the slideImageView is being touched
+                // If touched, the user wants to reorder that item
+                if(first && mDownView != null && mDownView.isBeingTouched()) {
+                    first = false;
+                    mTotalOffset = 0;
+
+                    mMobileItemId = getAdapter().getItemId(position);
+                    mHoverCell = getAndAddHoverView(selectedView);
+                    selectedView.setVisibility(INVISIBLE);
+
+                    mCellIsMobile = true;
+
+                    updateNeighborViewsForID(mMobileItemId);
+                }
                 mActivePointerId = event.getPointerId(0);
                 break;
+
             case MotionEvent.ACTION_MOVE:
                 if (mActivePointerId == INVALID_POINTER_ID) {
                     break;
@@ -229,8 +232,10 @@ public class QueueListView extends ListView {
                 break;
             case MotionEvent.ACTION_UP:
                 touchEventsEnded();
+                first = true;
                 break;
             case MotionEvent.ACTION_CANCEL:
+                first = true;
                 touchEventsCancelled();
                 break;
             case MotionEvent.ACTION_POINTER_UP:

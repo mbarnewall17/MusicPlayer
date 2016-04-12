@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
+import com.barnewall.matthew.musicplayer.Song.NowPlayingAdapter;
 import com.barnewall.matthew.musicplayer.Song.SongAdapter;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
@@ -37,7 +38,7 @@ public class NowPlayingActivity extends ActionBarActivity {
                 queue = ((MusicPlayerService.MyBinder)service).getService().getManager().getQueue();
 
                 // Create the adapter
-                SongAdapter adapter = new SongAdapter(queue, NowPlayingActivity.this);
+                NowPlayingAdapter adapter = new NowPlayingAdapter(queue, NowPlayingActivity.this);
 
                 QueueListView listView = (QueueListView) findViewById(R.id.queue_listview);
 
