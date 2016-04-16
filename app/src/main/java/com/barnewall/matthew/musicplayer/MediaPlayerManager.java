@@ -6,9 +6,7 @@ import android.util.Log;
 
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by Matthew on 8/18/2015.
@@ -21,13 +19,13 @@ public class MediaPlayerManager{
     private boolean                     startOver;
     private Handler                     handler;
     private Runnable                    r;
-    private NewSongListener             listener;
+    private ControlListener listener;
     private boolean                     skip;
     private boolean                     back;
     private boolean                     nowPlayingBoolean;
 
 
-    public MediaPlayerManager(ArrayList<SongListViewItem> queue, int nowPlayingPosition, NewSongListener listener){
+    public MediaPlayerManager(ArrayList<SongListViewItem> queue, int nowPlayingPosition, ControlListener listener){
         this.queue              = queue;
         this.nowPlayingPosition = nowPlayingPosition;
         this.nowPlaying         = queue.get(nowPlayingPosition);
@@ -49,6 +47,10 @@ public class MediaPlayerManager{
         //Set up the listener
         mediaPlayer.setOnCompletionListener(onCompletionListener);
         loadSong(queue.get(nowPlayingPosition));
+    }
+
+    public void setListener(ControlListener listener){
+        this.listener = listener;
     }
 
 
@@ -174,6 +176,10 @@ public class MediaPlayerManager{
 
     public SongListViewItem getNowPlaying(){
         return nowPlaying;
+    }
+
+    public int getNowPlayingPosition(){
+        return nowPlayingPosition;
     }
 
     public int getDuration(){

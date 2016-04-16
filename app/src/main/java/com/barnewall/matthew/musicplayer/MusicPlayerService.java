@@ -10,7 +10,6 @@ import android.os.IBinder;
 
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class MusicPlayerService extends Service {
@@ -37,7 +36,7 @@ public class MusicPlayerService extends Service {
         return mBinder;
     }
 
-    public MediaPlayerManager startPlaying(ArrayList<SongListViewItem> queue,int position, NewSongListener listener){
+    public MediaPlayerManager startPlaying(ArrayList<SongListViewItem> queue,int position, ControlListener listener){
         return manager = new MediaPlayerManager(queue, position, listener);
     }
 

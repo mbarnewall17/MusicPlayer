@@ -2,14 +2,15 @@ package com.barnewall.matthew.musicplayer;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.app.Fragment;
-import android.os.Handler;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.v4.widget.DrawerLayout;
@@ -24,7 +25,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
@@ -44,7 +44,7 @@ import java.util.ArrayList;
 public class MainActivity extends ActionBarActivity implements
         PlaybackFragment.OnFragmentInteractionListener,
         MusicFragment.OnFragmentInteractionListener,
-        NewSongListener {
+        ControlListener {
 
     // Instance Variables
 
@@ -95,6 +95,9 @@ public class MainActivity extends ActionBarActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Sets the audio stream so volume changes affect music volume not system volume
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         // Set up the navigation drawer
         setUpNavigationDrawer();
@@ -473,7 +476,7 @@ public class MainActivity extends ActionBarActivity implements
 
     public void showNowPlaying(View view){
         Intent intent = new Intent(this, NowPlayingActivity.class);
-        startActivity(intent);
+        startActivityForResult(intent, NowPlayingActivity.NOW_PLAYING);
     }
 
     public boolean isPaused(){
@@ -485,6 +488,29 @@ public class MainActivity extends ActionBarActivity implements
             ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).finished();
         }
         getApplicationContext().unbindService(connection);
+
+    }
+
+    /*
+     * interface implement method
+     */
+    public void songPlay(){
+
+    }
+
+    /*
+     * interface implement method
+     */
+    public void songPause(){
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == NowPlayingActivity.NOW_PLAYING){
+            manager.setListener(this);
+        }
 
     }
 }
