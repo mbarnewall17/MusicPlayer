@@ -18,7 +18,6 @@ public class MediaPlayerManager{
     private int                         nowPlayingPosition;
     private boolean                     startOver;
     private Handler                     handler;
-    private Runnable                    r;
     private ControlListener listener;
     private boolean                     skip;
     private boolean                     back;
@@ -35,14 +34,8 @@ public class MediaPlayerManager{
         skip                    = false;
         back                    = false;
         nowPlayingBoolean       = true;
-
         handler                 = new Handler();
-        r                       = new Runnable() {
-            @Override
-            public void run() {
-                startOver = true;
-            }
-        };
+
 
         //Set up the listener
         mediaPlayer.setOnCompletionListener(onCompletionListener);
@@ -60,14 +53,13 @@ public class MediaPlayerManager{
         public void onCompletion(MediaPlayer mp) {
             if (MediaPlayerManager.this.nowPlayingPosition != MediaPlayerManager.this.queue.size() - 1) {
                 // Indicates a skip and not to do anything here
-                if (skip) {
-                    skip = !skip;
-                } else if (back) {
+                if (back) {
                     back = !back;
                 } else {
                     playNextSong();
                 }
             } else {
+                nowPlaying.setAnimated(false);
                 mediaPlayer.release();
                 // loadSong with null indicates to the PlaybackFragment to remove callbacks to the handler
                 if (!skip && !back) {
@@ -79,9 +71,9 @@ public class MediaPlayerManager{
     };
 
     private void playNextSong(){
-        nowPlayingPosition++;
-        nowPlaying = queue.get(MediaPlayerManager.this.nowPlayingPosition);
         stop();
+        nowPlayingPosition++;
+        nowPlaying = queue.get(nowPlayingPosition);
         loadSong(nowPlaying);
     }
 
@@ -94,27 +86,38 @@ public class MediaPlayerManager{
         else {
             mediaPlayer.start();
         }
+        nowPlaying.setAnimated(true);
     }
 
     public void stop(){
+        nowPlaying.setAnimated(false);
         mediaPlayer.stop();
         mediaPlayer.reset();
     }
 
     public void pause(){
+        nowPlaying.setAnimated(false);
         mediaPlayer.pause();
     }
+
+    private Runnable r  = new Runnable() {
+        @Override
+        public void run() {
+            startOver = true;
+            back = false;
+        }
+    };
 
     public void back(){
         back = true;
         if(startOver){
             startOver = false;
         }
-        else if(!startOver && nowPlayingPosition > 0){
+        else if(nowPlayingPosition > 0){
             nowPlayingPosition = nowPlayingPosition - 1;
+            handler.removeCallbacks(r);
         }
-        handler.removeCallbacks(r);
-        handler.postDelayed(r, 250);
+        handler.postDelayed(r,250);
         stop();
         nowPlaying = queue.get(nowPlayingPosition);
         loadSong(nowPlaying);
@@ -122,15 +125,12 @@ public class MediaPlayerManager{
 
     public void skip(){
         if(nowPlayingPosition != queue.size() - 1){
-            skip = true;
-            stop();
-            nowPlayingPosition++;
-            nowPlaying = queue.get(nowPlayingPosition);
-            loadSong(nowPlaying);
+            playNextSong();
         }
     }
 
     public void loadSong(SongListViewItem item){
+        item.setAnimated(true);
         try {
             if(item != null) {
                 Log.d(GlobalFunctions.TAG, "song loaded from: " + item.getDataLocation());
@@ -174,6 +174,19 @@ public class MediaPlayerManager{
         }
     }
 
+    /*
+     * Plays the song in the queue at the given position
+     */
+    public void playSongAtPosition(int position){
+        // Checks to make sure the song is in the queue
+        if(position > 0 && position < queue.size()){
+            stop();
+            nowPlayingPosition = position;
+            nowPlaying = queue.get(nowPlayingPosition);
+            loadSong(nowPlaying);
+        }
+    }
+
     public SongListViewItem getNowPlaying(){
         return nowPlaying;
     }
@@ -204,14 +217,15 @@ public class MediaPlayerManager{
         }
     }
 
+    /*
+     * Indicates if music is currently playing
+     */
     public boolean getNowPlayingBoolean(){
         return nowPlayingBoolean;
     }
 
     /*
-     * Changes queue to the arraylist of songs passed in.
-     * Sets the nowPlayingPosition equal to the position of now playing in the new queue
-     * TODO: Create a new listviewitem for this queue, making sure to override compareTo
+     * Changes now playing position to the index in the queue of the currently playing song
      *
      * @param newQueue, The arraylist of the new queue
      */

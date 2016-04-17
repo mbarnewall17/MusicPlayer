@@ -14,9 +14,11 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 
 import com.barnewall.matthew.musicplayer.Song.NowPlayingAdapter;
 import com.barnewall.matthew.musicplayer.Song.SongAdapter;
@@ -47,7 +49,7 @@ public class NowPlayingActivity extends ActionBarActivity implements ControlList
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
                 NowPlayingActivity.this.service = service;
-                MediaPlayerManager manager = ((MusicPlayerService.MyBinder)service).getService().getManager();
+                final MediaPlayerManager manager = ((MusicPlayerService.MyBinder)service).getService().getManager();
 
                 queue = manager.getQueue();
 
@@ -61,6 +63,17 @@ public class NowPlayingActivity extends ActionBarActivity implements ControlList
                 listView.setArrayList(queue);
 
                 listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+
+                // Open listview to the playing song
+                listView.setSelection(manager.getNowPlayingPosition());
+
+                // Starts playing the clicked on song
+                listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        manager.playSongAtPosition(position);
+                    }
+                });
 
                 // Set up for animation
                 manager.setListener(NowPlayingActivity.this);
@@ -115,40 +128,31 @@ public class NowPlayingActivity extends ActionBarActivity implements ControlList
         getApplicationContext().unbindService(connection);
     }
 
-    //TODO: Implement the now playing animation, and implement these methods to control the animation
+    // Invalidate views to change the imageview
     @Override
     public void loadNewSongInfo(SongListViewItem newSong) {
-        // Set the animation based on the new song
+        ListView listview = (ListView) findViewById(R.id.queue_listview);
+        listview.invalidateViews();
     }
 
+    // Invalidate views to change the imageview
     @Override
     public void onFinish() {
-
+        ListView listview = (ListView) findViewById(R.id.queue_listview);
+        listview.invalidateViews();
     }
 
+    // Invalidate views to change the imageview
     @Override
     public void songPause() {
-        // stop the animation and remove the background
-        recordingAnimation.stop();
-        nowPlayingImageView.setBackground(null);
+        ListView listview = (ListView) findViewById(R.id.queue_listview);
+        listview.invalidateViews();
     }
 
-    private ImageView nowPlayingImageView;
-    private AnimationDrawable recordingAnimation;
-
-    // Doesn't crash but animation doesn't show
+    // Invalidate views to change the imageview
     @Override
     public void songPlay() {
-        // Get the song in the listview that is playing
-        int position = ((MusicPlayerService.MyBinder)service).getService().getManager().getNowPlayingPosition();
         ListView listview = (ListView) findViewById(R.id.queue_listview);
-
-        View view = listview.getAdapter().getView(position, null, listview);
-        nowPlayingImageView = (ImageView) view.findViewById(R.id.playingAnimationImageView);
-
-        // set up the animation and start it
-        nowPlayingImageView.setBackgroundResource(R.drawable.now_playing);
-        recordingAnimation = (AnimationDrawable) nowPlayingImageView.getBackground();
-        recordingAnimation.start();
+        listview.invalidateViews();
     }
 }

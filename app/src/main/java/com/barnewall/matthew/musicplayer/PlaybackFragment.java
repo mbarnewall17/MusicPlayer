@@ -106,6 +106,13 @@ public class PlaybackFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        // Load the song info incase it changed
+        setInfo(mListener.getNowPlaying());
+    }
+
+    @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
