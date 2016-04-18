@@ -232,4 +232,9 @@ public class MediaPlayerManager{
     public void updateNowPlayingPosition(){
         nowPlayingPosition = this.queue.indexOf(nowPlaying);
     }
+
+    public void destroy(){
+        stop();
+        mediaPlayer.release();
+    }
 }

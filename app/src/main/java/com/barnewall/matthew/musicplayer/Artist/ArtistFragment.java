@@ -120,7 +120,7 @@ public class ArtistFragment extends MusicFragment {
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    getMListener().handleArtistOnClick(adapter.getItem(position));
+                    getMListener().handleArtistOnClick(adapter.getItem(position), true);
                 }
             });
 

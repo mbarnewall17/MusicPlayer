@@ -127,7 +127,7 @@ public class AlbumFragment extends MusicFragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                getMListener().handleAlbumOnClick(adapter.getItem(position));
+                getMListener().handleAlbumOnClick(adapter.getItem(position), true);
             }
         });
 

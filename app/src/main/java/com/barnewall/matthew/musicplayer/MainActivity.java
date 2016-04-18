@@ -259,10 +259,28 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     // Creates a popup menu of options for the song, artist, album
-    public void createPopUp(View view){
+    public void createPopUp(final View view){
         PopupMenu popup = new PopupMenu(this, view);
         MenuInflater inflater = popup.getMenuInflater();
         inflater.inflate(R.menu.pop_up_menu, popup.getMenu());
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                //TODO: Make these values not hardcoded
+                if (item.getTitle().equals("Play")) {
+                    menuPlay(view);
+                } else if (item.getTitle().equals("Play Next")) {
+                    menuPlayNext(view);
+                } else if (item.getTitle().equals("Add to Play Queue")) {
+                    menuAddToQueue(view);
+                } else if (item.getTitle().equals("Add to Playlist")) {
+                    menuAddToPlaylist(view);
+                } else if (item.getTitle().equals("Delete")) {
+                    menuDelete(view);
+                }
+                return false;
+            }
+        });
         popup.show();
     }
 
@@ -314,9 +332,11 @@ public class MainActivity extends ActionBarActivity implements
         selectedCategory = MusicCategories.valueOf(fragmentID);
 
         actionBarDrawerToggle.setDrawerIndicatorEnabled(false);
+        drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+
     }
 
-    public void handleArtistOnClick(Object object){
+    public void handleArtistOnClick(Object object, boolean launch){
         whereCategory = MusicCategories.ARTISTS;
 
         // Select albums where artistID = artistID and isMusic = 1
@@ -324,10 +344,12 @@ public class MainActivity extends ActionBarActivity implements
         where[0] = MediaStore.Audio.Media.ARTIST_ID + " =? AND " + MediaStore.Audio.Media.IS_MUSIC  + "=?";
         where[1] = ((ArtistListViewItem) object).getArtistID();
         where[2] = "1";
-        handleClick(where, AlbumFragment.class.getName(), "ALBUMS");
-        setTitle(((ArtistListViewItem) object).getName());
+        if(launch) {
+            handleClick(where, AlbumFragment.class.getName(), "ALBUMS");
+            setTitle(((ArtistListViewItem) object).getName());
+        }
     }
-    public void handleAlbumOnClick(Object object){
+    public void handleAlbumOnClick(Object object, boolean launch){
         whereCategory = MusicCategories.ALBUMS;
 
         AlbumListViewItem item = (AlbumListViewItem) object;
@@ -342,20 +364,24 @@ public class MainActivity extends ActionBarActivity implements
         where[2] = Long.toString(item.getArtistID());   // ArtistID
         where[3] = item.getTitle();                     // Album title
         where[4] = Long.toString(item.getAlbumID());    // Album ID
-        handleClick(where, SongFragment.class.getName(), "SONGS");
-        setTitle(((AlbumListViewItem) object).getTitle());
+
+        if(launch) {
+            handleClick(where, SongFragment.class.getName(), "SONGS");
+            setTitle(((AlbumListViewItem) object).getTitle());
+        }
     }
 
 
     public void handleSongOnClick(final ArrayList<SongListViewItem> list, final int position){
 
+        // If no song has been played yet launch the service and connect to it
         Intent intent = new Intent(this, MusicPlayerService.class);
         this.connection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder servic) {
                 service = servic;
-                manager = ((MusicPlayerService.MyBinder)service).getService().startPlaying(list, position, MainActivity.this);
-                if(!isPlaybackShowing()){
+                manager = ((MusicPlayerService.MyBinder) service).getService().startPlaying(list, position, MainActivity.this);
+                if (!isPlaybackShowing()) {
                     findViewById(R.id.playbackRelativeLayout).setVisibility(View.VISIBLE);
                     togglePlayback(null);
                 }
@@ -367,19 +393,20 @@ public class MainActivity extends ActionBarActivity implements
             }
         };
         bindService(intent, connection, Context.BIND_AUTO_CREATE);
-        //manager.loadSong(list.get(position));
     }
 
 
-    public void handleGenreOnClick(Object object) {
+    public void handleGenreOnClick(Object object, boolean launch) {
         whereCategory = MusicCategories.GENRES;
 
         where = new String[3];
         where[0] = MediaStore.Audio.Media.IS_MUSIC  + "=?";                 // Where text
         where[1] = "1";                                                     // isMusic indicator
         where[2] = ((GenreListViewItem) object).getId();                    // GenreId
-        handleClick(where, AlbumFragment.class.getName(), "ALBUMS");
-        setTitle(((GenreListViewItem) object).getName());
+        if(launch) {
+            handleClick(where, AlbumFragment.class.getName(), "ALBUMS");
+            setTitle(((GenreListViewItem) object).getName());
+        }
     }
     public void handlePlaylistOnClick(View view){
 
@@ -389,6 +416,7 @@ public class MainActivity extends ActionBarActivity implements
     public void onBackPressed() {
         if (getFragmentManager().getBackStackEntryCount() == 1) {
             actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
         }
         if(isPlaybackShowing()){
             togglePlayback(null);
@@ -511,6 +539,49 @@ public class MainActivity extends ActionBarActivity implements
         if(requestCode == NowPlayingActivity.NOW_PLAYING){
             manager.setListener(this);
         }
+
+    }
+
+    private void menuPlay(View view){
+        // Get the position of the item click (position in parents parent)
+        int position = ((ListView) view.getParent().getParent()).getPositionForView(view);
+
+        // Get the data that created the view
+        Object item = ((ListView) view.getParent().getParent()).getAdapter().getItem(position);
+
+        // Do appropriate action based on what the item is
+        if(item instanceof SongListViewItem){
+            if(manager != null) {
+                manager.destroy();
+            }
+            ArrayList<SongListViewItem> single = new ArrayList<SongListViewItem>();
+            single.add((SongListViewItem) item);
+            handleSongOnClick(single, 0);
+        }
+        else if(item instanceof ArtistListViewItem){
+
+        }
+        else if(item instanceof AlbumListViewItem){
+
+        }
+        else if(item instanceof GenreListViewItem){
+
+        }
+    }
+
+    private void menuPlayNext(View view){
+
+    }
+
+    private void menuAddToQueue(View view){
+
+    }
+
+    private void menuAddToPlaylist(View view){
+
+    }
+
+    private void menuDelete(View view){
 
     }
 }
