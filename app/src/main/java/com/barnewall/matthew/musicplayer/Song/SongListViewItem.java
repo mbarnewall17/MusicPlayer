@@ -14,17 +14,19 @@ public class SongListViewItem implements Serializable{
     private String albumName;
     private String    duration;
     private boolean isAnimated;
+    private String artistID;
 
-    public SongListViewItem(String title, Long albumID,String artistName,
-                            String dataLocation, String trackNumber, String albumName, String duration){
+    public SongListViewItem(String title, Long albumID,String artistName, String dataLocation,
+                            String trackNumber, String albumName, String duration, String artistID){
         this.title                  = title;
-        this.albumID               = albumID;
+        this.albumID                = albumID;
         this.artistName             = artistName;
         this.dataLocation           = dataLocation;
         this.trackNumber            = trackNumber;
         this.albumName              = albumName;
         this.duration               = duration;
         this.isAnimated             = false;
+        this.artistID               = artistID;
     }
 
     public String getTitle() {
@@ -81,5 +83,9 @@ public class SongListViewItem implements Serializable{
 
     public void setAnimated(boolean isAnimated){
         this.isAnimated = isAnimated;
+    }
+
+    public String getArtistID(){
+        return artistID;
     }
 }

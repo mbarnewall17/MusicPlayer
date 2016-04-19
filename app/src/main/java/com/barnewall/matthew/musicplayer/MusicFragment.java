@@ -56,10 +56,10 @@ public abstract class MusicFragment extends Fragment {
         void onFragmentInteraction(Uri uri);
         public String[] getWhere();
         public MainActivity.MusicCategories getWhereCategory();
-        public void handleArtistOnClick(Object object, boolean launch);
-        public void handleAlbumOnClick(Object object, boolean song);
+        public void handleArtistOnClick(Object object);
+        public void handleAlbumOnClick(Object object);
         public void handleSongOnClick(ArrayList<SongListViewItem> list, int position);
-        public void handleGenreOnClick(Object object, boolean song);
+        public void handleGenreOnClick(Object object);
 
         public void handlePlaylistOnClick(View view);
     }

@@ -1,5 +1,6 @@
 package com.barnewall.matthew.musicplayer.Song;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
@@ -21,6 +22,7 @@ import com.barnewall.matthew.musicplayer.Song.SongAdapter;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by Matthew on 2/29/2016.
@@ -37,6 +39,28 @@ public class SongFragment extends MusicFragment {
     @Override
     public void populateListView(String where, String[] whereParams, MainActivity.MusicCategories category) {
 
+        // Get the songs
+        ArrayList<SongListViewItem> songs = getSongs(where,whereParams,category,getActivity(), true);
+
+        // Add adapter
+        final ArrayList<SongListViewItem> items = new ArrayList<SongListViewItem>(songs);
+        final SongAdapter adapter = new SongAdapter(songs, getActivity());
+        ListView listView = (ListView) getView().findViewById(R.id.songListView);
+        listView.setAdapter(adapter);
+        listView.setFastScrollEnabled(true);
+
+        // Set OnItemClickListener
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                getMListener().handleSongOnClick(items, position);
+            }
+        });
+
+    }
+
+    public static ArrayList<SongListViewItem> getSongs(String where, String[] whereParams
+            , MainActivity.MusicCategories category, Activity activity, boolean editUI){
         // Select songTitle, albumId, duration, artistName, fileLocation, trackNumber, album name
         String[] columns = new String[] {MediaStore.Audio.Media.TITLE,
                 MediaStore.Audio.Media.ALBUM_ID,
@@ -44,7 +68,8 @@ public class SongFragment extends MusicFragment {
                 MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.DATA,
                 MediaStore.Audio.Media.TRACK,
-                MediaStore.Audio.Media.ALBUM};
+                MediaStore.Audio.Media.ALBUM,
+                MediaStore.Audio.Media.ARTIST_ID};
 
         String orderBy = MediaStore.Audio.Media.TITLE + " ASC";
         boolean hideTrackNumber = true;
@@ -52,18 +77,27 @@ public class SongFragment extends MusicFragment {
 
         switch(category){
             case ALBUMS:
-                // Set the album artwork
-                ImageView iv = (ImageView) getView().findViewById(R.id.albumImageView);
-                iv.setVisibility(View.VISIBLE);
-                iv.setImageBitmap(GlobalFunctions.getBitmapFromID(Long.parseLong(whereParams[whereParams.length - 1]), 200, getActivity()));
+                if(editUI) {
+                    // Set the album artwork
+                    ImageView iv = (ImageView) activity.findViewById(R.id.albumImageView);
+                    iv.setVisibility(View.VISIBLE);
+                    iv.setImageBitmap(GlobalFunctions.getBitmapFromID(Long.parseLong(whereParams[whereParams.length - 1]), 200, activity));
+                }
                 orderBy = MediaStore.Audio.Media.TRACK + " ASC";
                 hideTrackNumber = false;
                 break;
+            case ARTISTS:
+                orderBy = MediaStore.Audio.Media.ALBUM + ", " + MediaStore.Audio.Media.TRACK + " ASC";
+                break;
+            case GENRES:
+                uri = MediaStore.Audio.Genres.Members.getContentUri("external", Integer.parseInt(whereParams[whereParams.length - 1]));
+                whereParams = Arrays.copyOfRange(whereParams, 0, whereParams.length - 1);
+                orderBy = MediaStore.Audio.Media.ALBUM + "," + MediaStore.Audio.Media.TRACK + " ASC";
             default:
                 break;
         }
 
-        ContentResolver musicResolver   = getActivity().getContentResolver();
+        ContentResolver musicResolver   = activity.getContentResolver();
 
         // Query the database
         Cursor musicCursor = musicResolver.query(
@@ -77,51 +111,39 @@ public class SongFragment extends MusicFragment {
         ArrayList<SongListViewItem> songs = new ArrayList<SongListViewItem>();
 
         // Navigate through query results
-        if(musicCursor!= null && musicCursor.moveToFirst()){
+        if(musicCursor!= null && musicCursor.moveToFirst()) {
             String trackNum = null;
-            do{
+            do {
                 // Add the track number
-                if(!hideTrackNumber) {
+                if (!hideTrackNumber) {
                     if (musicCursor.getString(5) != null && musicCursor.getString(5) != "" && musicCursor.getString(5).length() == 4) {
                         trackNum = removeDigitsFromTrack(musicCursor.getString(5));
                     } else {
                         trackNum = musicCursor.getString(5);
                     }
-                    if(trackNum == ""){
-                        trackNum = "0";
+                    if (trackNum == "") {
+                        trackNum = "";
                     }
                 }
 
                 // Create song object and add to arraylist
                 songs.add(new SongListViewItem(musicCursor.getString(0)
-                                ,musicCursor.getLong(1)
+                                , musicCursor.getLong(1)
                                 , musicCursor.getString(3)
-                                ,musicCursor.getString(4)
-                                ,trackNum
-                                ,musicCursor.getString(6)
-                                ,msToMin(musicCursor.getString(2)))
+                                , musicCursor.getString(4)
+                                , trackNum
+                                , musicCursor.getString(6)
+                                , msToMin(musicCursor.getString(2))
+                                , musicCursor.getString(7))
                 );
             }
             while (musicCursor.moveToNext());
             musicCursor.close();
-
-            // Add adapter
-            final ArrayList<SongListViewItem> items = new ArrayList<SongListViewItem>(songs);
-            final SongAdapter adapter = new SongAdapter(songs, getActivity());
-            ListView listView = (ListView) getView().findViewById(R.id.songListView);
-            listView.setAdapter(adapter);
-            listView.setFastScrollEnabled(true);
-
-            // Set OnItemClickListener
-            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    getMListener().handleSongOnClick(items, position);
-                }
-            });
         }
-
+        return songs;
     }
+
+
 
     public static String msToMin(String ms){
         try {
@@ -141,7 +163,7 @@ public class SongFragment extends MusicFragment {
     }
 
     // Removes leading zeros
-    private String removeDigitsFromTrack(String trackNumber){
+    private static String removeDigitsFromTrack(String trackNumber){
         trackNumber = trackNumber.substring(1);
         if(trackNumber.length() >= 1){
             if(trackNumber.substring(0,1).equals("0")){

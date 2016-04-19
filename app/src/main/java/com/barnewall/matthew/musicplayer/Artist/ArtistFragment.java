@@ -75,7 +75,7 @@ public class ArtistFragment extends MusicFragment {
                 idMap.put(artistName, musicCursor.getString(4));
 
                 AlbumListViewItem item = new AlbumListViewItem(musicCursor.getLong(1)
-                        ,artistName, musicCursor.getString(0), null, musicCursor.getLong(4));
+                        ,artistName, musicCursor.getString(0), null, musicCursor.getString(4));
 
                 if(year != null){
                     item.setOther(year);
@@ -120,7 +120,7 @@ public class ArtistFragment extends MusicFragment {
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    getMListener().handleArtistOnClick(adapter.getItem(position), true);
+                    getMListener().handleArtistOnClick(adapter.getItem(position));
                 }
             });
 

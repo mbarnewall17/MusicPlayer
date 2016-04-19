@@ -14,12 +14,12 @@ public class AlbumListViewItem implements Comparable<AlbumListViewItem>{
     private String  title;
     private Bitmap  albumArt;
     private boolean subQuery;
-    private long    artistID;
+    private String    artistID;
     private String  other;
 
 
     public AlbumListViewItem(long albumID, String artistName, String title
-    ,Bitmap albumArt, long artistID){
+    ,Bitmap albumArt, String artistID){
         this.albumID                    = albumID;
         this.artistName                 = artistName;
         this.title                      = title;
@@ -28,7 +28,7 @@ public class AlbumListViewItem implements Comparable<AlbumListViewItem>{
         subQuery = false;
     }
 
-    public long getArtistID() { return artistID;}
+    public String getArtistID() { return artistID;}
 
     public long getAlbumID() {
         return albumID;

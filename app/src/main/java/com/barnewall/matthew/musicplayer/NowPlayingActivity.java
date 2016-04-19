@@ -32,8 +32,10 @@ public class NowPlayingActivity extends ActionBarActivity implements ControlList
     private IBinder                     service;
     private ServiceConnection           connection;
     public static final int NOW_PLAYING = 253;
-
-    ArrayList<SongListViewItem> queue;
+    public static final String POSITION = "barnewall.musicplayer.position";
+    public static final String ALBUM_FRAGMENT = "barnewall.musicplayer.album";
+    private MediaPlayerManager manager;
+    private ArrayList<SongListViewItem> queue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +51,7 @@ public class NowPlayingActivity extends ActionBarActivity implements ControlList
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
                 NowPlayingActivity.this.service = service;
-                final MediaPlayerManager manager = ((MusicPlayerService.MyBinder)service).getService().getManager();
+                manager = ((MusicPlayerService.MyBinder)service).getService().getManager();
 
                 queue = manager.getQueue();
 
@@ -114,10 +116,49 @@ public class NowPlayingActivity extends ActionBarActivity implements ControlList
     }
 
     // Creates a popup menu of options for the song, artist, album
-    public void createPopUp(View view){
-        PopupMenu popup = new PopupMenu(this, view);
+    public void createPopUp(final View view){
+
+        // Create popup menu
+        final PopupMenu popup = new PopupMenu(this, view);
         MenuInflater inflater = popup.getMenuInflater();
-        inflater.inflate(R.menu.pop_up_menu, popup.getMenu());
+        inflater.inflate(R.menu.now_playing_pop_up_menu, popup.getMenu());
+
+        // Set a listener for when an option is selected
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                int position = ((ListView) view.getParent().getParent()).getPositionForView(view);
+                // Remove the selected song from the queue
+                if (item.getTitle().equals(getResources().getString(R.string.remove_from_queue))) {
+
+                    // Remove the song and update the ui
+                    manager.removeSong(position);
+                    QueueListView listView = (QueueListView) findViewById(R.id.queue_listview);
+                    listView.invalidateViews();
+
+                    // If no songs are left, go back to the main activity
+                    if(manager.getNowPlaying() == null){
+                        finish();
+                    }
+                }
+                else {
+                    Intent intent = getIntent();
+
+                    // The position in the queue
+                    intent.putExtra(POSITION, position);
+
+                    // finish this activity and have mainActivity launch the correct fragment
+                    if (item.getTitle().equals(getResources().getString(R.string.go_to_artist))) {
+                        intent.putExtra(ALBUM_FRAGMENT, false);
+                    } else if (item.getTitle().equals(getResources().getString(R.string.go_to_album))) {
+                        intent.putExtra(ALBUM_FRAGMENT, true);
+                    }
+                    setResult(RESULT_OK, intent);
+                    finish();
+                }
+                return false;
+            }
+        });
         popup.show();
     }
 
@@ -125,7 +166,11 @@ public class NowPlayingActivity extends ActionBarActivity implements ControlList
     @Override
     public void onDestroy(){
         super.onDestroy();
-        getApplicationContext().unbindService(connection);
+        // If the service is connected, end the music player and unbind
+        if(connection != null && service.isBinderAlive()) {
+            manager.destroy();
+            getApplicationContext().unbindService(connection);
+        }
     }
 
     // Invalidate views to change the imageview

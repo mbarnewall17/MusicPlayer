@@ -7,6 +7,7 @@ import android.util.Log;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by Matthew on 8/18/2015.
@@ -87,6 +88,7 @@ public class MediaPlayerManager{
             mediaPlayer.start();
         }
         nowPlaying.setAnimated(true);
+        nowPlayingBoolean = true;
     }
 
     public void stop(){
@@ -98,6 +100,7 @@ public class MediaPlayerManager{
     public void pause(){
         nowPlaying.setAnimated(false);
         mediaPlayer.pause();
+        nowPlayingBoolean = false;
     }
 
     private Runnable r  = new Runnable() {
@@ -146,17 +149,10 @@ public class MediaPlayerManager{
     }
 
     public void playNext(ArrayList<SongListViewItem> toAdd){
-        ArrayList<SongListViewItem> temp = new ArrayList<SongListViewItem>(nowPlayingPosition);
-        for(int i = 0; i <= nowPlayingPosition; i ++){
-            temp.add(queue.get(i));
+        Collections.reverse(toAdd);
+        for(SongListViewItem item: toAdd){
+            queue.add(nowPlayingPosition+1, item);
         }
-        for(SongListViewItem s: toAdd){
-            temp.add(s);
-        }
-        for(int i = nowPlayingPosition + 1; i < queue.size(); i++){
-            temp.add(queue.get(i));
-        }
-        queue = new ArrayList<SongListViewItem>(temp);
     }
 
     public void addToQueue(ArrayList<SongListViewItem> toAdd){
@@ -236,5 +232,31 @@ public class MediaPlayerManager{
     public void destroy(){
         stop();
         mediaPlayer.release();
+        nowPlaying = null;
+        nowPlayingPosition = 0;
+        nowPlayingBoolean = false;
+    }
+
+    public void removeSong(int position){
+
+        // If this is the only song, just destroy the media player
+        if(queue.size() == 1){
+            destroy();
+        }
+        else {
+
+            // If song is currently playing
+            if (position == nowPlayingPosition) {
+                // If it is the last song, go back to the previous song
+                if (position == queue.size() - 1) {
+                    nowPlayingPosition = nowPlayingPosition - 2;
+                }
+                // Go to the next song
+                playNextSong();
+            }
+
+            // Remove the song
+            queue.remove(position);
+        }
     }
 }

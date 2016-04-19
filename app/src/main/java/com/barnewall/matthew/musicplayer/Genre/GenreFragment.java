@@ -91,7 +91,7 @@ public class GenreFragment extends MusicFragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                getMListener().handleGenreOnClick(adapter.getItem(position), true);
+                getMListener().handleGenreOnClick(adapter.getItem(position));
             }
         });
     }

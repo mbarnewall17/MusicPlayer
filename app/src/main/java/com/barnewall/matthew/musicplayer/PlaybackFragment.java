@@ -261,6 +261,9 @@ public class PlaybackFragment extends Fragment {
             ((TextView) getView().findViewById(R.id.artistNameTextView)).setText(nowPlaying.getArtistName());
             getView().findViewById(R.id.artistNameTextView).setSelected(true);
         }
+        else{
+            mListener.togglePlayback(null);
+        }
     }
 
     /*

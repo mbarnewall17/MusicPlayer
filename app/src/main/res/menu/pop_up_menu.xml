@@ -2,17 +2,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/play"
-        android:title="Play" />
+        android:title="@string/play" />
     <item
         android:id="@+id/play_next"
-        android:title="Play Next" />
+        android:title="@string/play_next" />
     <item
         android:id="@+id/add_to_play_queue"
-        android:title="Add to Play Queue" />
+        android:title="@string/add_to_play_queue" />
     <item
         android:id="@+id/add_to_playlist"
-        android:title="Add to Playlist..." />
+        android:title="@string/add_to_playlist" />
     <item
         android:id="@+id/delete"
-        android:title="Delete" />
+        android:title="@string/delete" />
 </menu>

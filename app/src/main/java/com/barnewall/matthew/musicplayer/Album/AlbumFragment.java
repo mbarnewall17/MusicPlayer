@@ -95,7 +95,7 @@ public class AlbumFragment extends MusicFragment {
                         artist,                                   // ArtistNameAndNumberOfSongs or ArtistAndYear
                         musicCursor.getString(0),               // Title
                         null,                                   // Bitmap album artwork
-                        musicCursor.getLong(4));                // ArtistID
+                        musicCursor.getString(4));                // ArtistID
 
                 if(year != null) {
                     item.setOther(year);
@@ -113,11 +113,6 @@ public class AlbumFragment extends MusicFragment {
         // Remove duplicate albums
         removeDuplicates(albums);
 
-
-
-
-
-
         // Set the adapter
         adapter = new AlbumAdapter(albums, getActivity());
         ListView listView = (ListView) getView().findViewById(R.id.albumListView);
@@ -127,7 +122,7 @@ public class AlbumFragment extends MusicFragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                getMListener().handleAlbumOnClick(adapter.getItem(position), true);
+                getMListener().handleAlbumOnClick(adapter.getItem(position));
             }
         });
 

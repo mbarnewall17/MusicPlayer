@@ -17,6 +17,16 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="album_artwork">Album Artwork</string>
-    <string name="a">\@stringsalbum_artwork</string>
     <string name="title_activity_now_playing">NowPlayingActivity</string>
+    <string name="play">Play</string>
+    <string name="play_next">Play Next</string>
+    <string name="add_to_play_queue">Add to Play Queue</string>
+    <string name="add_to_playlist">Add to Playlist..</string>
+    <string name="delete">Delete</string>
+
+    <string name="remove_from_queue">Remove From Queue</string>
+    <string name="go_to_artist">Go To Artist</string>
+    <string name="go_to_album">Go To Album</string>
+
+
 </resources>
