@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="@dimen/layoutHeight"
+        android:layout_height="@dimen/layoutHeight"
+        android:id="@+id/notificationImageView"
+        android:layout_marginRight="10dp" />
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/layoutHeight"
+        android:orientation="vertical"
+        android:layout_weight="1">
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="@dimen/halfLayoutHeight"
+            android:id="@+id/notificationSongTextView"/>
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="@dimen/halfLayoutHeight"
+            android:id="@+id/notificationArtistTextView"/>
+
+    </LinearLayout>
+
+    <Button
+        android:layout_width="@dimen/layoutHeight"
+        android:layout_height="@dimen/layoutHeight"
+        android:id="@+id/notificationPauseButton"
+        android:background="@drawable/ic_action_pause"
+        android:backgroundTint="#000000" />
+
+    <Button
+        android:layout_width="@dimen/layoutHeight"
+        android:layout_height="@dimen/layoutHeight"
+        android:id="@+id/notificationExitButton" />
+
+</LinearLayout>

@@ -97,6 +97,8 @@ public class MainActivity extends ActionBarActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        startService(new Intent(this,MyService.class));
+
         // Sets the audio stream so volume changes affect music volume not system volume
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
@@ -451,12 +453,12 @@ public class MainActivity extends ActionBarActivity implements
         if(manager.isPlaying()){
             manager.pause();
             ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).pause();
-            ((ImageButton) findViewById(R.id.playImageButton)).setBackgroundResource(R.drawable.ic_action_play);
+            findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_play);
         }
         else{
             manager.play();
             ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).play();
-            ((ImageButton) findViewById(R.id.playImageButton)).setBackgroundResource(R.drawable.ic_action_pause);
+            findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_pause);
         }
     }
 
@@ -533,14 +535,14 @@ public class MainActivity extends ActionBarActivity implements
          * interface implement method
          */
     public void songPlay(){
-
+        findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_pause);
     }
 
     /*
      * interface implement method
      */
     public void songPause(){
-
+        findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_play);
     }
 
     @Override
@@ -610,7 +612,7 @@ public class MainActivity extends ActionBarActivity implements
             manager.playNext(newSongs);
         }
         else{
-            handleSongOnClick(newSongs,0);
+            handleSongOnClick(newSongs, 0);
         }
     }
 
@@ -622,7 +624,7 @@ public class MainActivity extends ActionBarActivity implements
             manager.addToQueue(newSongs);
         }
         else{
-            handleSongOnClick(newSongs,0);
+            handleSongOnClick(newSongs, 0);
         }
     }
 
@@ -668,5 +670,18 @@ public class MainActivity extends ActionBarActivity implements
         whereParams[1] = genre.getId();                    // GenreId
 
         return SongFragment.getSongs(where, whereParams, MusicCategories.GENRES, this, false);
+    }
+
+    public Context getContext(){
+        return getApplicationContext();
+    }
+
+    public String getApplicationName(){
+        return getPackageName();
+    }
+
+    //TODO: Implement for this, PlaybackFragment, and nowPlayingActivity
+    public void destroy(){
+
     }
 }

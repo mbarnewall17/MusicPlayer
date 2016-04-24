@@ -123,7 +123,7 @@ public class NowPlayingActivity extends ActionBarActivity implements ControlList
         MenuInflater inflater = popup.getMenuInflater();
         inflater.inflate(R.menu.now_playing_pop_up_menu, popup.getMenu());
 
-        // Set a listener for when an option is selected
+        // Set a listener for when an popup option is selected
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -199,5 +199,17 @@ public class NowPlayingActivity extends ActionBarActivity implements ControlList
     public void songPlay() {
         ListView listview = (ListView) findViewById(R.id.queue_listview);
         listview.invalidateViews();
+    }
+
+    public Context getContext(){
+        return getApplicationContext();
+    }
+
+    public String getApplicationName(){
+        return getPackageName();
+    }
+
+    public void destroy(){
+
     }
 }

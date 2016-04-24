@@ -317,6 +317,10 @@ public class PlaybackFragment extends Fragment {
         getActivity().findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_play);
     }
 
+    public void destroy(){
+
+    }
+
 }
 
 // https://futurestud.io/blog/how-to-blur-images-efficiently-with-androids-renderscript

@@ -1,5 +1,6 @@
 package com.barnewall.matthew.musicplayer;
 
+import android.content.Context;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.util.Log;
@@ -41,6 +42,14 @@ public class MediaPlayerManager{
         //Set up the listener
         mediaPlayer.setOnCompletionListener(onCompletionListener);
         loadSong(queue.get(nowPlayingPosition));
+        nowPlaying = queue.get(nowPlayingPosition);
+        NotificationManagement.createNotification(listener.getContext(),
+                listener.getApplicationName(),
+                nowPlaying.getTitle(),
+                nowPlaying.getArtistName(),
+                GlobalFunctions.getBitmapFromID(nowPlaying.getAlbumID(),
+                        (int) listener.getContext().getResources().getDimension(R.dimen.layoutHeight),
+                        listener.getContext()));
     }
 
     public void setListener(ControlListener listener){
@@ -86,6 +95,7 @@ public class MediaPlayerManager{
         }
         else {
             mediaPlayer.start();
+            listener.songPlay();
         }
         nowPlaying.setAnimated(true);
         nowPlayingBoolean = true;
@@ -100,7 +110,7 @@ public class MediaPlayerManager{
     public void pause(){
         nowPlaying.setAnimated(false);
         mediaPlayer.pause();
-        nowPlayingBoolean = false;
+        listener.songPause();
     }
 
     private Runnable r  = new Runnable() {
@@ -162,12 +172,7 @@ public class MediaPlayerManager{
     }
 
     public boolean isPlaying(){
-        if(nowPlayingBoolean) {
-            return mediaPlayer.isPlaying();
-        }
-        else{
-            return false;
-        }
+        return mediaPlayer.isPlaying();
     }
 
     /*
@@ -214,7 +219,7 @@ public class MediaPlayerManager{
     }
 
     /*
-     * Indicates if music is currently playing
+     * Indicates if mediaplayer is in playable state
      */
     public boolean getNowPlayingBoolean(){
         return nowPlayingBoolean;
@@ -235,6 +240,7 @@ public class MediaPlayerManager{
         nowPlaying = null;
         nowPlayingPosition = 0;
         nowPlayingBoolean = false;
+        listener.destroy();
     }
 
     public void removeSong(int position){

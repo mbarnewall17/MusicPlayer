@@ -1,5 +1,8 @@
 package com.barnewall.matthew.musicplayer;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -7,6 +10,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
+import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
@@ -25,7 +31,17 @@ public class MusicPlayerService extends Service {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            manager.updateNowPlayingPosition();
+            if(intent.getAction().equals(UPDATE_QUEUE)){
+                manager.updateNowPlayingPosition();
+            }
+            else if(intent.getAction().equals(NotificationManagement.EXIT_MUSIC)){
+                manager.destroy();
+                NotificationManagement.removeNotification(getApplicationContext());
+            }
+            else if(intent.getAction().equals(NotificationManagement.PAUSE_MUSIC)){
+                manager.pause();
+            }
+
         }
     };
 
@@ -55,7 +71,10 @@ public class MusicPlayerService extends Service {
         super.onCreate();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(UPDATE_QUEUE);
+        intentFilter.addAction(NotificationManagement.EXIT_MUSIC);
+        intentFilter.addAction(NotificationManagement.PAUSE_MUSIC);
         registerReceiver(receiver, intentFilter);
+
     }
 
     @Override

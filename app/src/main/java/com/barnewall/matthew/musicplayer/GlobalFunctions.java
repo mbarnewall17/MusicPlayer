@@ -2,6 +2,7 @@ package com.barnewall.matthew.musicplayer;
 
 import android.app.Activity;
 import android.content.ContentUris;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -18,7 +19,7 @@ import java.util.Collections;
 public class GlobalFunctions {
     public static final String TAG = "barnewall.musicplayer";
 
-    public static Bitmap getBitmapFromID(long id, int size, Activity activity){
+    public static Bitmap getBitmapFromID(long id, int size, Context activity){
         Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
         Uri albumArtUri = ContentUris.withAppendedId(sArtworkUri, id);
 
@@ -35,7 +36,7 @@ public class GlobalFunctions {
         return null;
     }
 
-    private static Bitmap getThumbnail(Uri uri, int size, Activity activity) throws FileNotFoundException, IOException{
+    private static Bitmap getThumbnail(Uri uri, int size, Context activity) throws FileNotFoundException, IOException{
         InputStream input = activity.getContentResolver().openInputStream(uri);
 
         BitmapFactory.Options onlyBoundsOptions = new BitmapFactory.Options();

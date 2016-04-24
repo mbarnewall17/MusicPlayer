@@ -5,4 +5,5 @@
     <dimen name="layoutHeight">60dp</dimen>
     <dimen name="albumArt">275dp</dimen>
     <dimen name="iconSize">40dp</dimen>
+    <dimen name="halfLayoutHeight">30dp</dimen>
 </resources>

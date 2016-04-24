@@ -1,5 +1,7 @@
 package com.barnewall.matthew.musicplayer;
 
+import android.content.Context;
+
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
 /**
@@ -10,4 +12,7 @@ public interface ControlListener {
     public void onFinish();
     public void songPause();
     public void songPlay();
+    public Context getContext();
+    public String getApplicationName();
+    public void destroy();
 }
