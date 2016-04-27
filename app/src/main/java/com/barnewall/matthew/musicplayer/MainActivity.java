@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
+import android.graphics.PorterDuff;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.app.Fragment;
@@ -706,6 +707,20 @@ public class MainActivity extends ActionBarActivity implements
         if(popOnResume){
             destroy();
         }
+    }
+
+    public void toggleShuffle(View view){
+        if(manager.isShuffle()) {
+            findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP);
+        }
+        else{
+            findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
+        }
+        manager.shuffle();
+    }
+
+    public boolean isShuffle(){
+        return manager.isShuffle();
     }
 
 

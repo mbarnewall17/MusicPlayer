@@ -150,6 +150,7 @@ public class PlaybackFragment extends Fragment {
         public boolean isPlaybackShowing();
         public boolean isPaused();
         public void togglePlayback(View view);
+        public boolean isShuffle();
     }
 
     @Override
@@ -219,6 +220,12 @@ public class PlaybackFragment extends Fragment {
                 getActivity().findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_pause);
             }
 
+            if(mListener.isShuffle()){
+                getActivity().findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
+            }
+            else{
+                getActivity().findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP);
+            }
             duration = nowPlaying.getDuration();
             // Gets the duration and sets the max on the seekbar
             ((TextView) getActivity().findViewById(R.id.endTimeTextView)).setText(nowPlaying.getDuration());

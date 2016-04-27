@@ -101,7 +101,7 @@ public class MediaPlayerManager{
                 nowPlaying.getArtistName(),
                 GlobalFunctions.getBitmapFromID(nowPlaying.getAlbumID(),
                         (int) listener.getContext().getResources().getDimension(R.dimen.layoutHeight),
-                        listener.getContext()),true);
+                        listener.getContext()), true);
     }
 
     public void stop(){
@@ -120,7 +120,7 @@ public class MediaPlayerManager{
                 nowPlaying.getArtistName(),
                 GlobalFunctions.getBitmapFromID(nowPlaying.getAlbumID(),
                         (int) listener.getContext().getResources().getDimension(R.dimen.layoutHeight),
-                        listener.getContext()),false);
+                        listener.getContext()), false);
     }
 
     private Runnable r  = new Runnable() {
@@ -254,9 +254,13 @@ public class MediaPlayerManager{
     public void destroy(){
         stop();
         mediaPlayer.release();
+        if(shuffle){
+            shuffle();
+        }
         nowPlaying = null;
         nowPlayingPosition = 0;
         nowPlayingBoolean = false;
+
         listener.destroy();
     }
 
@@ -284,18 +288,46 @@ public class MediaPlayerManager{
     }
 
     public void shuffle(){
-        if(shuffle){
-            ArrayList<SongListViewItem> newSongs = new ArrayList<SongListViewItem>();
-            for(SongListViewItem item : queue){
-
-            }
+        // Set the appropriate queue
+        if (shuffle) {
+            ArrayList<SongListViewItem> temp = new ArrayList<SongListViewItem>(queue);
             queue = new ArrayList<SongListViewItem>(alternateQueue);
+
+            // Add any new songs to the end of the queue
+            for(int i = 0; i < temp.size(); i++){
+                if (queue.indexOf(temp.get(i)) == -1) {
+                    queue.add(temp.get(i));
+                }
+            }
+
+            // Remove any songs from the queue that have been removed
+            for(int i = 0; i < queue.size(); i++){
+                if (temp.indexOf(queue.get(i)) == -1) {
+                    queue.remove(i);
+                    i--;
+                }
+            }
+            alternateQueue = null;
+
+            // Set up the variables to be correct
+            nowPlayingPosition = queue.indexOf(nowPlaying);
+            nowPlaying = queue.get(nowPlayingPosition);
         }
-        else{
+        else {
             alternateQueue = new ArrayList<SongListViewItem>(queue);
             Collections.shuffle(queue);
+
+            queue.remove(nowPlaying);
+            queue.add(0, nowPlaying);
+            nowPlayingPosition = 0;
+
         }
 
-        nowPlayingPosition = queue.indexOf(nowPlaying);
+        // Invert the shuffle boolean
+        shuffle = !shuffle;
+    }
+
+    public boolean isShuffle(){
+        return shuffle;
     }
 }

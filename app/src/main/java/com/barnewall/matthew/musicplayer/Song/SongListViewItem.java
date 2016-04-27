@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Created by Matthew on 8/5/2015.
  */
-public class SongListViewItem implements Serializable{
+public class SongListViewItem implements Serializable, Comparable<SongListViewItem>{
     private String title;
     private Long albumID;
     private String artistName;
@@ -87,5 +87,21 @@ public class SongListViewItem implements Serializable{
 
     public String getArtistID(){
         return artistID;
+    }
+
+    @Override
+    public int compareTo(SongListViewItem other){
+        if(title == other.getTitle() && albumID == other.getAlbumID() && artistID == other.getArtistID()){
+            return 0;
+        }
+        else if(title == other.getTitle() && albumID == other.getAlbumID()){
+            return artistName.compareTo(other.getArtistName());
+        }
+        else if(title == other.getTitle() && artistID == other.getArtistID()){
+            return albumName.compareTo(other.getAlbumName());
+        }
+        else{
+            return title.compareTo(other.getTitle());
+        }
     }
 }

@@ -79,7 +79,8 @@
                     android:layout_centerVertical="true"
                     android:scaleType="centerCrop"
                     android:background="@drawable/ic_action_shuffle"
-                    android:layout_marginLeft="15dp" />
+                    android:layout_marginLeft="15dp"
+                    android:onClick="toggleShuffle" />
 
                 <ImageButton
                     android:layout_width="75dp"
