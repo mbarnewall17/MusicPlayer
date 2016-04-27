@@ -70,6 +70,9 @@ public class MainActivity extends ActionBarActivity implements
     private IBinder                     service;
     private ServiceConnection           connection;
 
+    // Used to pop the PlaybackFragment if it was open when the manager was destoryed
+    private boolean popOnResume;
+
     // Categories in the navigatino menu
     public enum MusicCategories{
         ALBUMS,ARTISTS,PLAYLISTS,SONGS,GENRES,FOLDERS,SETTINGS
@@ -113,6 +116,7 @@ public class MainActivity extends ActionBarActivity implements
         where = null;
         whereCategory = MusicCategories.ARTISTS;
         selectedCategory = MusicCategories.ARTISTS;
+        popOnResume = false;
     }
 
     /*
@@ -217,31 +221,36 @@ public class MainActivity extends ActionBarActivity implements
 
         // If the Playback fragment exists on the backstack pop it off
         if (f != null) {
-            getFragmentManager().popBackStack();
-            getSupportActionBar().show();
+            try {
+                getFragmentManager().popBackStack();
+                getSupportActionBar().show();
 
-            // Music is playing or could be, show the playback bar
-            if(manager.getNowPlaying() != null) {
-                findViewById(R.id.playbackRelativeLayout).setVisibility(View.VISIBLE);
-            }
-
-            // Adds the ability to swipe to open the playback bar
-            findViewById(R.id.playbackRelativeLayout).setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    switch (event.getAction()){
-                        case(MotionEvent.ACTION_DOWN):
-                            y1 = event.getY();
-                            break;
-                        case(MotionEvent.ACTION_UP):
-                            y2 = event.getY();
-                            if((y1-y2) > MIN_DISTANCE){
-                                togglePlayback(null);
-                            }
-                    }
-                    return false;
+                // Music is playing or could be, show the playback bar
+                if (manager.getNowPlaying() != null) {
+                    findViewById(R.id.playbackRelativeLayout).setVisibility(View.VISIBLE);
                 }
-            });
+
+                // Adds the ability to swipe to open the playback bar
+                findViewById(R.id.playbackRelativeLayout).setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        switch (event.getAction()) {
+                            case (MotionEvent.ACTION_DOWN):
+                                y1 = event.getY();
+                                break;
+                            case (MotionEvent.ACTION_UP):
+                                y2 = event.getY();
+                                if ((y1 - y2) > MIN_DISTANCE) {
+                                    togglePlayback(null);
+                                }
+                        }
+                        return false;
+                    }
+                });
+            }
+            catch(IllegalStateException e){
+                popOnResume = true;
+            }
         }
 
         // If the playback fragment does not exist on the backstack, create a new instance of
@@ -526,7 +535,10 @@ public class MainActivity extends ActionBarActivity implements
         super.onDestroy();
         // If the service is connected, end the music player and unbind
         if(connection != null && service.isBinderAlive()) {
-            manager.destroy();
+            //TODO:FIX THIS
+            if(manager.getNowPlayingBoolean()){
+                manager.destroy();
+            }
             getApplicationContext().unbindService(connection);
         }
     }
@@ -682,6 +694,19 @@ public class MainActivity extends ActionBarActivity implements
 
     //TODO: Implement for this, PlaybackFragment, and nowPlayingActivity
     public void destroy(){
-
+        if(isPlaybackShowing()){
+            togglePlayback(null);
+        }
+        findViewById(R.id.playbackRelativeLayout).setVisibility(View.GONE);
     }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        if(popOnResume){
+            destroy();
+        }
+    }
+
+
 }

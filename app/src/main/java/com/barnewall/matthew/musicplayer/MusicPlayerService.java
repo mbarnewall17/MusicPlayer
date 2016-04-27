@@ -39,7 +39,13 @@ public class MusicPlayerService extends Service {
                 NotificationManagement.removeNotification(getApplicationContext());
             }
             else if(intent.getAction().equals(NotificationManagement.PAUSE_MUSIC)){
-                manager.pause();
+                if(manager.isPlaying()) {
+                    manager.pause();
+                }
+                else{
+                    manager.play();
+                }
+
             }
 
         }

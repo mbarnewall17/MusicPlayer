@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.widget.RemoteViews;
 
 /**
@@ -17,10 +18,18 @@ public class NotificationManagement {
     public static final String PAUSE_MUSIC = "PAUSE_MUSIC";
 
     public static void createNotification(Context context, String packageName, String songName,
-                                          String artistName, Bitmap artwork){
+                                          String artistName, Bitmap artwork, boolean playing){;
+        Notification notification = buildNotification(context,packageName,songName,artistName,artwork, playing);
+
+        ((NotificationManager)context.getSystemService(context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, notification);
+    }
+
+    public static Notification buildNotification(Context context, String packageName, String songName,
+                                                 String artistName, Bitmap artwork, boolean playing){
+
         int icon = R.drawable.no_album_art;
         long when = System.currentTimeMillis();
-        Notification notification = new Notification(icon, artistName + " - " + songName, when);
+        Notification notification = new Notification(icon,null,when);
 
         NotificationManager mNotificationManager = (NotificationManager)context.getSystemService(context.NOTIFICATION_SERVICE);
 
@@ -29,6 +38,15 @@ public class NotificationManagement {
         contentView.setTextViewText(R.id.notificationSongTextView, songName);
         contentView.setTextViewText(R.id.notificationArtistTextView, artistName);
         contentView.setImageViewBitmap(R.id.notificationImageView, artwork);
+
+        contentView.setInt(R.id.notificationPauseButton, "setBackgroundColor", android.R.color.black);
+        if(playing){
+            contentView.setImageViewBitmap(R.id.notificationPauseButton, ((BitmapDrawable) context.getResources().getDrawable(R.drawable.ic_action_pause)).getBitmap());
+        }
+        else{
+            contentView.setImageViewBitmap(R.id.notificationPauseButton, ((BitmapDrawable) context.getResources().getDrawable(R.drawable.ic_action_play)).getBitmap());
+
+        }
 
         Intent exitIntent = new Intent(EXIT_MUSIC);
         PendingIntent exitPendingIntent = PendingIntent.getBroadcast(context, 0, exitIntent, 0);
@@ -45,12 +63,10 @@ public class NotificationManagement {
         notification.contentIntent = contentIntent;
 
         notification.flags |= Notification.FLAG_NO_CLEAR;
-
-        mNotificationManager.notify(NOTIFICATION_ID, notification);
+        return notification;
     }
 
     public static void updateNotification(){
-
     }
 
     public static void removeNotification(Context context){

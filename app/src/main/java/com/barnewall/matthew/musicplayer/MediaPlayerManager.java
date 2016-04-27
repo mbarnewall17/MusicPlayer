@@ -24,6 +24,8 @@ public class MediaPlayerManager{
     private boolean                     skip;
     private boolean                     back;
     private boolean                     nowPlayingBoolean;
+    private boolean                     shuffle;
+    private ArrayList<SongListViewItem> alternateQueue;
 
 
     public MediaPlayerManager(ArrayList<SongListViewItem> queue, int nowPlayingPosition, ControlListener listener){
@@ -37,19 +39,13 @@ public class MediaPlayerManager{
         back                    = false;
         nowPlayingBoolean       = true;
         handler                 = new Handler();
+        shuffle                 = false;
 
 
         //Set up the listener
         mediaPlayer.setOnCompletionListener(onCompletionListener);
         loadSong(queue.get(nowPlayingPosition));
         nowPlaying = queue.get(nowPlayingPosition);
-        NotificationManagement.createNotification(listener.getContext(),
-                listener.getApplicationName(),
-                nowPlaying.getTitle(),
-                nowPlaying.getArtistName(),
-                GlobalFunctions.getBitmapFromID(nowPlaying.getAlbumID(),
-                        (int) listener.getContext().getResources().getDimension(R.dimen.layoutHeight),
-                        listener.getContext()));
     }
 
     public void setListener(ControlListener listener){
@@ -99,6 +95,13 @@ public class MediaPlayerManager{
         }
         nowPlaying.setAnimated(true);
         nowPlayingBoolean = true;
+        NotificationManagement.createNotification(listener.getContext(),
+                listener.getApplicationName(),
+                nowPlaying.getTitle(),
+                nowPlaying.getArtistName(),
+                GlobalFunctions.getBitmapFromID(nowPlaying.getAlbumID(),
+                        (int) listener.getContext().getResources().getDimension(R.dimen.layoutHeight),
+                        listener.getContext()),true);
     }
 
     public void stop(){
@@ -111,6 +114,13 @@ public class MediaPlayerManager{
         nowPlaying.setAnimated(false);
         mediaPlayer.pause();
         listener.songPause();
+        NotificationManagement.createNotification(listener.getContext(),
+                listener.getApplicationName(),
+                nowPlaying.getTitle(),
+                nowPlaying.getArtistName(),
+                GlobalFunctions.getBitmapFromID(nowPlaying.getAlbumID(),
+                        (int) listener.getContext().getResources().getDimension(R.dimen.layoutHeight),
+                        listener.getContext()),false);
     }
 
     private Runnable r  = new Runnable() {
@@ -152,6 +162,13 @@ public class MediaPlayerManager{
                 mediaPlayer.start();
                 nowPlayingBoolean = true;
             }
+            NotificationManagement.createNotification(listener.getContext(),
+                    listener.getApplicationName(),
+                    nowPlaying.getTitle(),
+                    nowPlaying.getArtistName(),
+                    GlobalFunctions.getBitmapFromID(nowPlaying.getAlbumID(),
+                            (int) listener.getContext().getResources().getDimension(R.dimen.layoutHeight),
+                            listener.getContext()),true);
             listener.loadNewSongInfo(item);
         } catch(Exception e){
             e.printStackTrace();
@@ -264,5 +281,21 @@ public class MediaPlayerManager{
             // Remove the song
             queue.remove(position);
         }
+    }
+
+    public void shuffle(){
+        if(shuffle){
+            ArrayList<SongListViewItem> newSongs = new ArrayList<SongListViewItem>();
+            for(SongListViewItem item : queue){
+
+            }
+            queue = new ArrayList<SongListViewItem>(alternateQueue);
+        }
+        else{
+            alternateQueue = new ArrayList<SongListViewItem>(queue);
+            Collections.shuffle(queue);
+        }
+
+        nowPlayingPosition = queue.indexOf(nowPlaying);
     }
 }

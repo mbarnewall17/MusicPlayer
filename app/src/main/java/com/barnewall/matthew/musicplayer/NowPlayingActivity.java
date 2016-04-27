@@ -168,7 +168,6 @@ public class NowPlayingActivity extends ActionBarActivity implements ControlList
         super.onDestroy();
         // If the service is connected, end the music player and unbind
         if(connection != null && service.isBinderAlive()) {
-            manager.destroy();
             getApplicationContext().unbindService(connection);
         }
     }

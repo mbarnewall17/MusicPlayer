@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/black">
 
     <ImageView
         android:layout_width="@dimen/layoutHeight"
@@ -18,25 +19,41 @@
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="@dimen/halfLayoutHeight"
-            android:id="@+id/notificationSongTextView"/>
+            android:gravity="bottom"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit ="marquee_forever"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:scrollHorizontally="true"
+            android:id="@+id/notificationSongTextView"
+            android:textColor="@color/white" />
 
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="@dimen/halfLayoutHeight"
-            android:id="@+id/notificationArtistTextView"/>
+            android:gravity="bottom"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit ="marquee_forever"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:scrollHorizontally="true"
+            android:id="@+id/notificationArtistTextView"
+            android:textColor="@color/white" />
 
     </LinearLayout>
 
-    <Button
+    <ImageView
         android:layout_width="@dimen/layoutHeight"
         android:layout_height="@dimen/layoutHeight"
         android:id="@+id/notificationPauseButton"
-        android:background="@drawable/ic_action_pause"
-        android:backgroundTint="#000000" />
+        android:background="@drawable/ic_action_pause" />
 
     <Button
         android:layout_width="@dimen/layoutHeight"
         android:layout_height="@dimen/layoutHeight"
-        android:id="@+id/notificationExitButton" />
+        android:id="@+id/notificationExitButton"
+        android:background="@drawable/exit" />
 
 </LinearLayout>
