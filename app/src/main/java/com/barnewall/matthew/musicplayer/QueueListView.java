@@ -179,31 +179,37 @@ public class QueueListView extends ListView {
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
-                mDownX = (int) event.getX();
-                mDownY = (int) event.getY();
 
-                int position = pointToPosition(mDownX, mDownY);
-                int itemNum = position - getFirstVisiblePosition();
+                try {
+                    mDownX = (int) event.getX();
+                    mDownY = (int) event.getY();
 
-                // Get the slideImageView of the clicked listview item
-                View selectedView = getChildAt(itemNum);
-                SlideImageView mDownView = (SlideImageView) selectedView.findViewById(R.id.slideButtonImageView);
+                    int position = pointToPosition(mDownX, mDownY);
+                    int itemNum = position - getFirstVisiblePosition();
 
-                // If this is the first time, check if the slideImageView is being touched
-                // If touched, the user wants to reorder that item
-                if(first && mDownView != null && mDownView.isBeingTouched()) {
-                    first = false;
-                    mTotalOffset = 0;
+                    // Get the slideImageView of the clicked listview item
+                    View selectedView = getChildAt(itemNum);
+                    SlideImageView mDownView = (SlideImageView) selectedView.findViewById(R.id.slideButtonImageView);
 
-                    mMobileItemId = getAdapter().getItemId(position);
-                    mHoverCell = getAndAddHoverView(selectedView);
-                    selectedView.setVisibility(INVISIBLE);
+                    // If this is the first time, check if the slideImageView is being touched
+                    // If touched, the user wants to reorder that item
+                    if (first && mDownView != null && mDownView.isBeingTouched()) {
+                        first = false;
+                        mTotalOffset = 0;
 
-                    mCellIsMobile = true;
+                        mMobileItemId = getAdapter().getItemId(position);
+                        mHoverCell = getAndAddHoverView(selectedView);
+                        selectedView.setVisibility(INVISIBLE);
 
-                    updateNeighborViewsForID(mMobileItemId);
+                        mCellIsMobile = true;
+
+                        updateNeighborViewsForID(mMobileItemId);
+                    }
+                    mActivePointerId = event.getPointerId(0);
                 }
-                mActivePointerId = event.getPointerId(0);
+                catch(NullPointerException e){
+                    e.printStackTrace();
+                }
                 break;
 
             case MotionEvent.ACTION_MOVE:

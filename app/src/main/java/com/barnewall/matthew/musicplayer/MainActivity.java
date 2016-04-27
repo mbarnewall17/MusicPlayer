@@ -390,8 +390,11 @@ public class MainActivity extends ActionBarActivity implements
             @Override
             public void onServiceConnected(ComponentName name, IBinder servic) {
                 service = servic;
-                if(list.size() != 0) {
-                    manager = ((MusicPlayerService.MyBinder) service).getService().startPlaying(list, position, MainActivity.this);
+
+                // Don't want this passing in the reference
+                ArrayList<SongListViewItem> passIn = new ArrayList<SongListViewItem>(list);
+                if(passIn.size() != 0) {
+                    manager = ((MusicPlayerService.MyBinder) service).getService().startPlaying(passIn, position, MainActivity.this);
                     if (!isPlaybackShowing()) {
                         findViewById(R.id.playbackRelativeLayout).setVisibility(View.VISIBLE);
                         togglePlayback(null);
@@ -675,12 +678,18 @@ public class MainActivity extends ActionBarActivity implements
         return SongFragment.getSongs(where, whereParams, MusicCategories.ALBUMS, this, false);
     }
 
+    /*
+     * Gets all songs associated with a specific genre from the MediaStore
+     *
+     * @param genre A GenreListViewItem that contains the genreId to select songs from
+     * @return      An ArrayList<SongListViewItem> containing all songs from the genre
+     */
     private ArrayList<SongListViewItem> getSongsFromGenre(GenreListViewItem genre){
 
-        String where = MediaStore.Audio.Media.IS_MUSIC  + "=?";                 // Where text
+        String where = MediaStore.Audio.Media.IS_MUSIC  + "=?"; // Where text
         String[] whereParams = new String[2];
-        whereParams[0] = "1";                                                     // isMusic indicator
-        whereParams[1] = genre.getId();                    // GenreId
+        whereParams[0] = "1";                                   // isMusic indicator
+        whereParams[1] = genre.getId();                         // GenreId
 
         return SongFragment.getSongs(where, whereParams, MusicCategories.GENRES, this, false);
     }
@@ -693,7 +702,7 @@ public class MainActivity extends ActionBarActivity implements
         return getPackageName();
     }
 
-    //TODO: Implement for this, PlaybackFragment, and nowPlayingActivity
+    //TODO: Implement for nowPlayingActivity
     public void destroy(){
         if(isPlaybackShowing()){
             togglePlayback(null);
@@ -704,12 +713,22 @@ public class MainActivity extends ActionBarActivity implements
     @Override
     public void onResume(){
         super.onResume();
+
+        // If destroy was called when the app was closed, call destroy when reopened
         if(popOnResume){
             destroy();
         }
     }
 
+    /*
+     * Toggles the shuffle feature by changing the color of the button and
+     *  toggling shuffle in the MediaPlayerManager instance, manager
+     *
+     *  @param view,    The view that initiated the method call
+     */
     public void toggleShuffle(View view){
+
+        // Change the color of the shuffle button
         if(manager.isShuffle()) {
             findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP);
         }
@@ -718,6 +737,7 @@ public class MainActivity extends ActionBarActivity implements
         }
         manager.shuffle();
     }
+
 
     public boolean isShuffle(){
         return manager.isShuffle();

@@ -48,6 +48,31 @@ public class MediaPlayerManager{
         nowPlaying = queue.get(nowPlayingPosition);
     }
 
+    public void reset(ArrayList<SongListViewItem> queue, int nowPlayingPosition, ControlListener listener){
+        if(nowPlayingBoolean){
+            destroy();
+        }
+        this.queue              = queue;
+        this.nowPlayingPosition = nowPlayingPosition;
+        this.nowPlaying         = queue.get(nowPlayingPosition);
+        mediaPlayer             = new MediaPlayer();
+        this.listener           = listener;
+        startOver               = true;
+        skip                    = false;
+        back                    = false;
+        nowPlayingBoolean       = true;
+        handler                 = new Handler();
+        shuffle                 = false;
+
+
+        //Set up the listener
+        mediaPlayer.setOnCompletionListener(onCompletionListener);
+        nowPlaying = queue.get(nowPlayingPosition);
+        loadSong(nowPlaying);
+
+
+    }
+
     public void setListener(ControlListener listener){
         this.listener = listener;
     }
