@@ -1,9 +1,9 @@
 package com.barnewall.matthew.musicplayer;
 
-import android.content.Context;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
@@ -20,13 +20,16 @@ public class MediaPlayerManager{
     private int                         nowPlayingPosition;
     private boolean                     startOver;
     private Handler                     handler;
-    private ControlListener listener;
-    private boolean                     skip;
+    private ControlListener             listener;
     private boolean                     back;
-    private boolean                     nowPlayingBoolean;
+    private boolean                     isInValidState;
     private boolean                     shuffle;
     private ArrayList<SongListViewItem> alternateQueue;
+    private Repeat                      repeat;
 
+    public enum Repeat{
+        NONE,REPEAT_SONG,REPEAT_ALL
+    }
 
     public MediaPlayerManager(ArrayList<SongListViewItem> queue, int nowPlayingPosition, ControlListener listener){
         this.queue              = queue;
@@ -35,41 +38,17 @@ public class MediaPlayerManager{
         mediaPlayer             = new MediaPlayer();
         this.listener           = listener;
         startOver               = true;
-        skip                    = false;
         back                    = false;
-        nowPlayingBoolean       = true;
+        isInValidState          = true;
         handler                 = new Handler();
         shuffle                 = false;
-
-
-        //Set up the listener
-        mediaPlayer.setOnCompletionListener(onCompletionListener);
-        loadSong(queue.get(nowPlayingPosition));
-        nowPlaying = queue.get(nowPlayingPosition);
-    }
-
-    public void reset(ArrayList<SongListViewItem> queue, int nowPlayingPosition, ControlListener listener){
-        if(nowPlayingBoolean){
-            destroy();
-        }
-        this.queue              = queue;
-        this.nowPlayingPosition = nowPlayingPosition;
-        this.nowPlaying         = queue.get(nowPlayingPosition);
-        mediaPlayer             = new MediaPlayer();
-        this.listener           = listener;
-        startOver               = true;
-        skip                    = false;
-        back                    = false;
-        nowPlayingBoolean       = true;
-        handler                 = new Handler();
-        shuffle                 = false;
+        repeat                  = Repeat.NONE;
 
 
         //Set up the listener
         mediaPlayer.setOnCompletionListener(onCompletionListener);
         nowPlaying = queue.get(nowPlayingPosition);
         loadSong(nowPlaying);
-
 
     }
 
@@ -82,19 +61,32 @@ public class MediaPlayerManager{
     private MediaPlayer.OnCompletionListener onCompletionListener = new MediaPlayer.OnCompletionListener() {
         @Override
         public void onCompletion(MediaPlayer mp) {
-            if (MediaPlayerManager.this.nowPlayingPosition != MediaPlayerManager.this.queue.size() - 1) {
-                // Indicates a skip and not to do anything here
-                if (back) {
-                    back = !back;
-                } else {
+
+            // If repeat is enabled, replay the same song
+            // Decrementing the nowPlayingPosition and then calling playNextSong repeats the same song
+            if(repeat == Repeat.REPEAT_SONG){
+                nowPlayingPosition--;
+            }
+
+            // Play the next song in the queue if there is another one
+            if (nowPlayingPosition != MediaPlayerManager.this.queue.size() - 1) {
+                playNextSong();
+
+            // If there is no next song
+            } else {
+
+                // Repeat the queue again if repeat all is toggled
+                if(repeat == Repeat.REPEAT_ALL){
+                    nowPlayingPosition = -1;
                     playNextSong();
                 }
-            } else {
-                nowPlaying.setAnimated(false);
-                mediaPlayer.release();
-                // loadSong with null indicates to the PlaybackFragment to remove callbacks to the handler
-                if (!skip && !back) {
-                    nowPlayingBoolean = false;
+
+                // Release the manager and set up the manager so it is no longer in a playing state
+                else{
+                    nowPlaying.setAnimated(false);
+                    mediaPlayer.release();
+
+                    isInValidState = false;
                     finished();
                 }
             }
@@ -109,17 +101,24 @@ public class MediaPlayerManager{
     }
 
     public void play(){
-        if(!nowPlayingBoolean){
+        if(!isInValidState){
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setOnCompletionListener(onCompletionListener);
             loadSong(nowPlaying);
         }
         else {
-            mediaPlayer.start();
-            listener.songPlay();
+
+            // If called because the back button was pressed, just load the song
+            if(back){
+                loadSong(nowPlaying);
+            }
+            else {
+                mediaPlayer.start();
+                listener.songPlay();
+            }
         }
         nowPlaying.setAnimated(true);
-        nowPlayingBoolean = true;
+        isInValidState = true;
         NotificationManagement.createNotification(listener.getContext(),
                 listener.getApplicationName(),
                 nowPlaying.getTitle(),
@@ -130,9 +129,11 @@ public class MediaPlayerManager{
     }
 
     public void stop(){
+        if(isInValidState) {
+            mediaPlayer.stop();
+            mediaPlayer.reset();
+        }
         nowPlaying.setAnimated(false);
-        mediaPlayer.stop();
-        mediaPlayer.reset();
     }
 
     public void pause(){
@@ -165,10 +166,10 @@ public class MediaPlayerManager{
             nowPlayingPosition = nowPlayingPosition - 1;
             handler.removeCallbacks(r);
         }
-        handler.postDelayed(r,250);
+        handler.postDelayed(r,500);
         stop();
         nowPlaying = queue.get(nowPlayingPosition);
-        loadSong(nowPlaying);
+        play();
     }
 
     public void skip(){
@@ -185,7 +186,7 @@ public class MediaPlayerManager{
                 mediaPlayer.setDataSource(item.getDataLocation());
                 mediaPlayer.prepare();
                 mediaPlayer.start();
-                nowPlayingBoolean = true;
+                isInValidState = true;
             }
             NotificationManagement.createNotification(listener.getContext(),
                     listener.getApplicationName(),
@@ -196,7 +197,7 @@ public class MediaPlayerManager{
                             listener.getContext()),true);
             listener.loadNewSongInfo(item);
         } catch(Exception e){
-            e.printStackTrace();
+            Toast.makeText(listener.getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -247,6 +248,9 @@ public class MediaPlayerManager{
     }
 
     public void seekTo(int position){
+        if(!isInValidState){
+           play();
+        }
         mediaPlayer.seekTo(position);
     }
 
@@ -258,13 +262,14 @@ public class MediaPlayerManager{
         if(listener != null){
             listener.onFinish();
         }
+        NotificationManagement.removeNotification(listener.getContext());
     }
 
     /*
      * Indicates if mediaplayer is in playable state
      */
-    public boolean getNowPlayingBoolean(){
-        return nowPlayingBoolean;
+    public boolean getInValidState(){
+        return isInValidState;
     }
 
     /*
@@ -282,18 +287,20 @@ public class MediaPlayerManager{
         if(shuffle){
             shuffle();
         }
+
         nowPlaying = null;
         nowPlayingPosition = 0;
-        nowPlayingBoolean = false;
+        isInValidState = false;
 
         listener.destroy();
+        NotificationManagement.removeNotification(listener.getContext());
     }
 
     public void removeSong(int position){
 
         // If this is the only song, just destroy the media player
         if(queue.size() == 1){
-            destroy();
+            destroy();nowPlaying.setAnimated(false);
         }
         else {
 
@@ -354,5 +361,24 @@ public class MediaPlayerManager{
 
     public boolean isShuffle(){
         return shuffle;
+    }
+
+    public Repeat toggleRepeat(){
+        switch (repeat){
+            case NONE:
+                repeat = Repeat.REPEAT_SONG;
+                break;
+            case REPEAT_SONG:
+                repeat = Repeat.REPEAT_ALL;
+                break;
+            case REPEAT_ALL:
+                repeat = Repeat.NONE;
+                break;
+        }
+        return repeat;
+    }
+
+    public Repeat getRepeat(){
+        return repeat;
     }
 }

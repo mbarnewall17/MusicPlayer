@@ -2,7 +2,6 @@ package com.barnewall.matthew.musicplayer;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -25,7 +24,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
@@ -41,7 +39,6 @@ import com.barnewall.matthew.musicplayer.Song.SongFragment;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class MainActivity extends ActionBarActivity implements
         PlaybackFragment.OnFragmentInteractionListener,
@@ -463,7 +460,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public void togglePlay(View view){
-        if(manager.isPlaying()){
+        if(manager.getInValidState() && manager.isPlaying()){
             manager.pause();
             ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).pause();
             findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_play);
@@ -486,7 +483,7 @@ public class MainActivity extends ActionBarActivity implements
 
     public boolean getNowPlayingBoolean(){
         if(manager != null){
-            return manager.getNowPlaying() != null && manager.getNowPlayingBoolean();
+            return manager.getNowPlaying() != null && manager.getInValidState();
         }
         else{
             return false;
@@ -527,10 +524,10 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public void onFinish(){
+        // Hid the Playbackfragment
         if(isPlaybackShowing()){
             ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).finished();
         }
-        getApplicationContext().unbindService(connection);
 
     }
 
@@ -539,11 +536,11 @@ public class MainActivity extends ActionBarActivity implements
         super.onDestroy();
         // If the service is connected, end the music player and unbind
         if(connection != null && service.isBinderAlive()) {
-            //TODO:FIX THIS
-            if(manager.getNowPlayingBoolean()){
+
+            // Destroys the manager if manager is not already destoryed
+            if(manager.getInValidState()){
                 manager.destroy();
             }
-            getApplicationContext().unbindService(connection);
         }
     }
 
@@ -743,5 +740,28 @@ public class MainActivity extends ActionBarActivity implements
         return manager.isShuffle();
     }
 
+    public void toggleRepeat(View view){
+        setUpRepeatIcon(manager.toggleRepeat());
+    }
 
+    public void setUpRepeatIcon(MediaPlayerManager.Repeat repeat){
+        if(repeat == null){
+            repeat = manager.getRepeat();
+        }
+        View view = findViewById(R.id.repeatImageButton);
+        switch (repeat){
+            case NONE:
+                view.setBackgroundResource(R.drawable.ic_action_repeat);
+                view.getBackground().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP);
+                break;
+            case REPEAT_SONG:
+                view.setBackgroundResource(R.drawable.ic_action_repeat);
+                view.getBackground().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
+                break;
+            case REPEAT_ALL:
+                view.setBackgroundResource(R.drawable.ic_action_repeat_all);
+                view.getBackground().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
+                break;
+        }
+    }
 }

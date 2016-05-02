@@ -59,6 +59,9 @@ public class MusicPlayerService extends Service {
     }
 
     public MediaPlayerManager startPlaying(ArrayList<SongListViewItem> queue,int position, ControlListener listener){
+        if(manager != null){
+            manager.destroy();
+        }
         return manager = new MediaPlayerManager(queue, position, listener);
     }
 

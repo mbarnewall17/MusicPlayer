@@ -67,7 +67,8 @@
                     android:layout_alignParentEnd="true"
                     android:background="@drawable/ic_action_repeat"
                     android:scaleType="centerCrop"
-                    android:layout_marginRight="15dp" />
+                    android:layout_marginRight="15dp"
+                    android:onClick="toggleRepeat" />
 
                 <ImageButton
                     android:layout_width="25dp"
