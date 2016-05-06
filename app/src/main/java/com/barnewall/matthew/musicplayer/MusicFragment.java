@@ -61,7 +61,7 @@ public abstract class MusicFragment extends Fragment {
         public void handleSongOnClick(ArrayList<SongListViewItem> list, int position);
         public void handleGenreOnClick(Object object);
 
-        public void handlePlaylistOnClick(View view);
+        public void handlePlaylistOnClick(Object object);
     }
 
 

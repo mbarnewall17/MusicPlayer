@@ -45,7 +45,7 @@ public class PlaylistFragment extends MusicFragment {
                 ,MediaStore.Audio.Playlists.NAME + " ASC");         // Order By
 
         // Arraylist to hold playlist objects
-        ArrayList<PlaylistListViewItem> playlists = new ArrayList<PlaylistListViewItem>();
+        final ArrayList<PlaylistListViewItem> playlists = new ArrayList<PlaylistListViewItem>();
 
         // Add each playlist
         if(musicCursor!= null && musicCursor.moveToFirst()){
@@ -65,7 +65,7 @@ public class PlaylistFragment extends MusicFragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                getMListener().handlePlaylistOnClick(view);
+                getMListener().handlePlaylistOnClick(playlists.get(position));
             }
         });
     }

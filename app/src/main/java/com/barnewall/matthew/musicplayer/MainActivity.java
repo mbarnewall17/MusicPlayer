@@ -27,6 +27,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.barnewall.matthew.musicplayer.Album.AlbumFragment;
 import com.barnewall.matthew.musicplayer.Album.AlbumListViewItem;
@@ -35,6 +36,8 @@ import com.barnewall.matthew.musicplayer.Artist.ArtistListViewItem;
 import com.barnewall.matthew.musicplayer.Genre.GenreFragment;
 import com.barnewall.matthew.musicplayer.Genre.GenreListViewItem;
 import com.barnewall.matthew.musicplayer.Playlist.PlaylistFragment;
+import com.barnewall.matthew.musicplayer.Playlist.PlaylistListViewItem;
+import com.barnewall.matthew.musicplayer.Playlist.PlayListParser;
 import com.barnewall.matthew.musicplayer.Song.SongFragment;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
@@ -420,8 +423,21 @@ public class MainActivity extends ActionBarActivity implements
         handleClick(where, AlbumFragment.class.getName(), "ALBUMS");
         setTitle(((GenreListViewItem) object).getName());
     }
-    public void handlePlaylistOnClick(View view){
+    public void handlePlaylistOnClick(Object object){
+        PlayListParser parser = new PlayListParser(((PlaylistListViewItem) object).getPath());
+        String songs = parser.getEntries();
+        if(songs.indexOf("/") == -1){
+            Toast.makeText(this,getResources().getString(R.string.playlist_error), Toast.LENGTH_SHORT).show();
+        }
+        else {
 
+            whereCategory = MusicCategories.PLAYLISTS;
+
+            where = new String[1];
+            where[0] = MediaStore.Audio.Media.DATA + " in " + songs;
+
+            handleClick(where, SongFragment.class.getName(), "SONGS");
+        }
     }
 
     @Override

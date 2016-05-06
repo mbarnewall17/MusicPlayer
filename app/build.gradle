@@ -20,7 +20,9 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:21.0.3'
     compile 'com.android.support:support-v4:21.0.3'
+    compile files('libs/jid3lib-0.5.4.jar')
+    compile files('libs/jaudiotagger-2.0.4-20111207.115108-15.jar')
 }

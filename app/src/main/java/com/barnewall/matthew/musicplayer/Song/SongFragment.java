@@ -93,6 +93,9 @@ public class SongFragment extends MusicFragment {
                 uri = MediaStore.Audio.Genres.Members.getContentUri("external", Integer.parseInt(whereParams[whereParams.length - 1]));
                 whereParams = Arrays.copyOfRange(whereParams, 0, whereParams.length - 1);
                 orderBy = MediaStore.Audio.Media.ALBUM + "," + MediaStore.Audio.Media.TRACK + " ASC";
+                break;
+            case PLAYLISTS:
+                break;
             default:
                 break;
         }

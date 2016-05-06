@@ -104,4 +104,9 @@ public class SongListViewItem implements Serializable, Comparable<SongListViewIt
             return title.compareTo(other.getTitle());
         }
     }
+
+    @Override
+    public String toString(){
+        return artistName + "-" + title;
+    }
 }
