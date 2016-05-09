@@ -21,6 +21,7 @@ import com.barnewall.matthew.musicplayer.R;
 import com.barnewall.matthew.musicplayer.Song.SongAdapter;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -142,6 +143,30 @@ public class SongFragment extends MusicFragment {
             }
             while (musicCursor.moveToNext());
             musicCursor.close();
+        }
+
+        // Put the songs in the correct order of the playlist
+        if(category == MainActivity.MusicCategories.PLAYLISTS){
+            where = where.substring(10,where.length() - 1);
+            ArrayList<String> order = new ArrayList(Arrays.asList(where.split(", ")));
+
+            ArrayList<SongListViewItem> temp = new ArrayList<SongListViewItem>(order.size());
+            for(int i = 0; i < order.size(); i++){
+                temp.add(null);
+            }
+
+            for(SongListViewItem s : songs){
+                temp.set(order.indexOf("'" + s.getDataLocation() + "'"),s);
+            }
+
+            songs = temp;
+
+            for(int i = 0; i < songs.size(); i++){
+                if(songs.get(i) == null){
+                    songs.remove(i);
+                    i--;
+                }
+            }
         }
         return songs;
     }

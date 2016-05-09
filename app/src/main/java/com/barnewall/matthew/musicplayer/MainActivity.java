@@ -1,9 +1,11 @@
 package com.barnewall.matthew.musicplayer;
 
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
@@ -11,6 +13,7 @@ import android.graphics.PorterDuff;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.app.Fragment;
+import android.os.Environment;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.v4.widget.DrawerLayout;
@@ -24,6 +27,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
@@ -37,7 +41,7 @@ import com.barnewall.matthew.musicplayer.Genre.GenreFragment;
 import com.barnewall.matthew.musicplayer.Genre.GenreListViewItem;
 import com.barnewall.matthew.musicplayer.Playlist.PlaylistFragment;
 import com.barnewall.matthew.musicplayer.Playlist.PlaylistListViewItem;
-import com.barnewall.matthew.musicplayer.Playlist.PlayListParser;
+import com.barnewall.matthew.musicplayer.Playlist.PlaylistManager;
 import com.barnewall.matthew.musicplayer.Song.SongFragment;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
@@ -424,9 +428,9 @@ public class MainActivity extends ActionBarActivity implements
         setTitle(((GenreListViewItem) object).getName());
     }
     public void handlePlaylistOnClick(Object object){
-        PlayListParser parser = new PlayListParser(((PlaylistListViewItem) object).getPath());
-        String songs = parser.getEntries();
-        if(songs.indexOf("/") == -1){
+        PlaylistManager parser = new PlaylistManager(((PlaylistListViewItem) object).getPath(), this);
+        ArrayList<String> songs = parser.getSongs();
+        if(songs.size() == 0){
             Toast.makeText(this,getResources().getString(R.string.playlist_error), Toast.LENGTH_SHORT).show();
         }
         else {
@@ -434,7 +438,12 @@ public class MainActivity extends ActionBarActivity implements
             whereCategory = MusicCategories.PLAYLISTS;
 
             where = new String[1];
-            where[0] = MediaStore.Audio.Media.DATA + " in " + songs;
+            String songList = "";
+            for(String s : songs){
+                songList = songList + "'" + s + "', ";
+            }
+            songList = songList.substring(0,songList.length() - 2);
+            where[0] = MediaStore.Audio.Media.DATA + " in (" + songList + ")";
 
             handleClick(where, SongFragment.class.getName(), "SONGS");
         }
@@ -657,8 +666,61 @@ public class MainActivity extends ActionBarActivity implements
         }
     }
 
-    private void menuAddToPlaylist(View view){
+    private void menuAddToPlaylist(final View view){
+        final ArrayList<PlaylistListViewItem> playlists = PlaylistFragment.getPlaylists(null, null, null, getContentResolver());
+        CharSequence[] names = new CharSequence[playlists.size() + 1];
+        names[0] = getResources().getString(R.string.playlist_create_new);
+        for(int i = 1; i < playlists.size() + 1; i++){
+            names[i] = playlists.get(i - 1).toString();
+        }
+        Log.d("aaaa", "here");
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.playlist_select))
+                .setItems(names, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
 
+                        if(which != 0) {
+                            addSongsToPlaylist(playlists.get(which).getPath(), view);
+                        }
+                        else{
+                            AlertDialog.Builder playlistName = new AlertDialog.Builder(MainActivity.this)
+                                    .setTitle(getResources().getString(R.string.playlist_enter_name));
+                            playlistName.setView(MainActivity.this.getLayoutInflater().inflate(R.layout.edit_text, null));
+                            playlistName.setCancelable(true);
+                            playlistName.setPositiveButton(getResources().getString(R.string.create), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    String name = ((EditText) ((AlertDialog) dialog).findViewById(R.id.editText)).getText().toString();
+                                    if (name != null) {
+                                        String playlistName = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC) + "/" + name + ".m3u";
+                                        addSongsToPlaylist(playlistName, view);
+                                        dialog.dismiss();
+                                    }
+                                }
+                            });
+                            playlistName.setNegativeButton(getResources().getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                }
+                            });
+                            playlistName.create().show();
+                        }
+                    }
+                });
+        dialog.create().show();
+    }
+
+    private void addSongsToPlaylist(String playlistName, View view){
+        PlaylistManager manager = new PlaylistManager(playlistName, this);
+        ArrayList<SongListViewItem> songs = menuGetSongs(view);
+        String toastMessage;
+        if (manager.addSongsToPlaylist(songs)) {
+            toastMessage = songs.size() + " " + getResources().getString(R.string.playlist_success_adding_song);
+        } else {
+            toastMessage = getResources().getString(R.string.playlist_failure_adding_song);
+        }
+        Toast.makeText(MainActivity.this, toastMessage, Toast.LENGTH_SHORT).show();
     }
 
     private void menuDelete(View view){

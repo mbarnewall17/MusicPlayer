@@ -66,6 +66,7 @@ public class SongAdapter extends BaseAdapter{
 
         //Set the views to correct values
         SongListViewItem lv = data.get(position);
+        Log.d("AAAA", lv.toString());
         name.setText(lv.getTitle());
         name.setSelected(true);
         extra.setText(lv.getArtistName() + "(" + lv.getDuration() + ")");

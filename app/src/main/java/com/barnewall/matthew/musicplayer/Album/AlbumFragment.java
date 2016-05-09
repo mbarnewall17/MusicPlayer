@@ -171,7 +171,7 @@ public class AlbumFragment extends MusicFragment {
                     finished = false;
 
                     // Makes sure the list view isn't empty
-                    if (((AlbumListViewItem) adapter.getItem(firstVisibleItem)).getAlbumID() != -1) {
+                    if (totalItemCount != 0 && ((AlbumListViewItem) adapter.getItem(firstVisibleItem)).getAlbumID() != -1) {
 
                         // Does all work on new thread
                         new Thread(new Runnable() {

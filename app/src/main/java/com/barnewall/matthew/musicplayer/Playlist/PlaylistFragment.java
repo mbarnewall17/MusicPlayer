@@ -30,11 +30,26 @@ public class PlaylistFragment extends MusicFragment {
     }
 
     public void populateListView(String where, String[] whereParams, MainActivity.MusicCategories category) {
+
+        final ArrayList<PlaylistListViewItem> playlists = getPlaylists(where, whereParams, category, getActivity().getContentResolver());
+        // Set the adapter
+        PlaylistAdapter adapter = new PlaylistAdapter(playlists, getActivity());
+        ListView listView = (ListView) getView().findViewById(R.id.playlistListView);
+        listView.setAdapter(adapter);
+
+        // Set the OnItemClickListener
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                getMListener().handlePlaylistOnClick(playlists.get(position));
+            }
+        });
+    }
+
+    public static ArrayList<PlaylistListViewItem> getPlaylists(String where, String[] whereParams, MainActivity.MusicCategories category, ContentResolver musicResolver){
         // Select playlistName, playlistDataLocation
         String[] columns = new String[] {MediaStore.Audio.Playlists.NAME,
                 MediaStore.Audio.Playlists.DATA};
-
-        ContentResolver musicResolver   = getActivity().getContentResolver();
 
         // Query the database
         Cursor musicCursor = musicResolver.query(
@@ -55,18 +70,6 @@ public class PlaylistFragment extends MusicFragment {
             }
             while (musicCursor.moveToNext());
         }
-
-        // Set the adapter
-        PlaylistAdapter adapter = new PlaylistAdapter(playlists, getActivity());
-        ListView listView = (ListView) getView().findViewById(R.id.playlistListView);
-        listView.setAdapter(adapter);
-
-        // Set the OnItemClickListener
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                getMListener().handlePlaylistOnClick(playlists.get(position));
-            }
-        });
+        return playlists;
     }
 }

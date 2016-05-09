@@ -28,6 +28,11 @@
     <string name="go_to_artist">Go To Artist</string>
     <string name="go_to_album">Go To Album</string>
     <string name="playlist_error">No Songs in Playlist</string>
-
-
+    <string name="playlist_select">Select a Playlist to Add Song(s) to: </string>
+    <string name="playlist_success_adding_song">Song(s) Added</string>
+    <string name="playlist_failure_adding_song">Failure Adding Song(s)</string>
+    <string name="playlist_create_new">Create New Playlist</string>
+    <string name="playlist_enter_name">Enter Name For Playlist</string>
+    <string name="create">Create</string>
+    <string name="cancel">Cancel</string>
 </resources>
