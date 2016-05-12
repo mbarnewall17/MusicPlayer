@@ -29,22 +29,23 @@ public class PlaylistManager {
 
         this.playlistFilepath = playlistFilepath;
         file = new File(playlistFilepath);
+
+        // Create the playlist if it does not exist and scan it
         if(!file.exists()){
-            Log.d("AAA", "doesnt exist");
+
             try {
                 file.createNewFile();
-                Log.d("AAA", file.getPath());
+
+                // Write the header of .m3u file
                 BufferedWriter writer = new BufferedWriter(new FileWriter(file));
                 writer.write("#EXTM3U\n");
                 writer.write("#name=" + file.getName() + "\n");
                 writer.write("#name=" + file.getAbsolutePath() + "\n");
                 writer.close();
 
-                MediaScannerConnection.scanFile(
-                        context,
-                        new String[]{file.getAbsolutePath()},
-                        null,
-                        null);
+                // Scan the file into to MediaStore
+                MediaScannerConnection.scanFile(context, new String[]{file.getAbsolutePath()}, null, null);
+
             }
             catch (IOException e){
                 e.printStackTrace();
@@ -53,16 +54,23 @@ public class PlaylistManager {
 
     }
 
+    /*
+     * Gets a list of all songs in the playlist
+     *
+     * @return  entries An ArrayList of songs(file paths) in the playlist
+     */
     public ArrayList<String> getSongs(){
         ArrayList<String> entries = new ArrayList<String>();
 
         try{
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
             String line;
+
+            // Read each line, if it starts with /, it is a song
             while((line = bufferedReader.readLine()) != null){
                 try {
                     if (line.charAt(0) == '/') {
-                        entries.add(line);
+                        entries.add(line.replace("'","''"));
 
                     }
                 }
@@ -79,13 +87,17 @@ public class PlaylistManager {
         return entries;
     }
 
-    public void createPlaylist(ArrayList<String> songs){
-
-    }
-
+    /*
+     * Adds the songs passed in to the playlist
+     *
+     * @param   songs   An ArrayList of songs to add the the playlist
+     * @return  boolean A boolean indicating if the songs were successfully added
+     */
     public boolean addSongsToPlaylist(ArrayList<SongListViewItem> songs){
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
+
+            // Write each song to the playlist, by appending
             for(SongListViewItem song: songs) {
                 writer.write(song.getDataLocation() + "\n");
             }

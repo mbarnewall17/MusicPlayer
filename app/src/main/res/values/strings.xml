@@ -2,6 +2,7 @@
     <string name="app_name">Music Player</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="action_save">Save</string>
     <string name="title_activity_main">MainActivity</string>
     <string-array name="navigation_drawer_choices">
         <item>Albums</item>
@@ -35,4 +36,7 @@
     <string name="playlist_enter_name">Enter Name For Playlist</string>
     <string name="create">Create</string>
     <string name="cancel">Cancel</string>
+    <string name="cannot_delete">Cannot Delete: Only songs and playlists can be deleted</string>
+    <string name="song_removed">Song Deleted</string>
+    <string name="playlist_removed">Playlist Deleted</string>
 </resources>

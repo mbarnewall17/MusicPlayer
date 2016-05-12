@@ -27,7 +27,7 @@ public class NotificationManagement {
     public static Notification buildNotification(Context context, String packageName, String songName,
                                                  String artistName, Bitmap artwork, boolean playing){
 
-        int icon = R.drawable.no_album_art;
+        int icon = R.drawable.ic_launcher;
         long when = System.currentTimeMillis();
         Notification notification = new Notification(icon,null,when);
 

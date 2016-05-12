@@ -1,11 +1,14 @@
 package com.barnewall.matthew.musicplayer;
 
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.AudioManager;
+import android.os.Environment;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -15,11 +18,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.barnewall.matthew.musicplayer.Playlist.PlaylistManager;
 import com.barnewall.matthew.musicplayer.Song.NowPlayingAdapter;
 import com.barnewall.matthew.musicplayer.Song.SongAdapter;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
@@ -36,11 +42,14 @@ public class NowPlayingActivity extends ActionBarActivity implements ControlList
     public static final String ALBUM_FRAGMENT = "barnewall.musicplayer.album";
     private MediaPlayerManager manager;
     private ArrayList<SongListViewItem> queue;
+    private boolean destroy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_now_playing);
+
+        destroy = false;
 
         // Sets the audio stream so volume changes affect music volume not system volume
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -108,7 +117,37 @@ public class NowPlayingActivity extends ActionBarActivity implements ControlList
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_save) {
+
+            AlertDialog.Builder playlistName = new AlertDialog.Builder(this)
+                    .setTitle(getResources().getString(R.string.playlist_enter_name));
+            playlistName.setView(this.getLayoutInflater().inflate(R.layout.edit_text, null));
+            playlistName.setCancelable(true);
+            playlistName.setPositiveButton(getResources().getString(R.string.create), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    String name = ((EditText) ((AlertDialog) dialog).findViewById(R.id.editText)).getText().toString();
+                    if (name != null && name != "") {
+                        String playlistName = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC) + "/" + name + ".m3u";
+                        PlaylistManager manager = new PlaylistManager(playlistName, NowPlayingActivity.this);
+                        String toastMessage;
+                        if (manager.addSongsToPlaylist(queue)) {
+                            toastMessage = queue.size() + " " + getResources().getString(R.string.playlist_success_adding_song);
+                        } else {
+                            toastMessage = getResources().getString(R.string.playlist_failure_adding_song);
+                        }
+                        Toast.makeText(NowPlayingActivity.this, toastMessage, Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    }
+                }
+            });
+            playlistName.setNegativeButton(getResources().getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+            playlistName.create().show();
             return true;
         }
 
@@ -209,6 +248,21 @@ public class NowPlayingActivity extends ActionBarActivity implements ControlList
     }
 
     public void destroy(){
+        try {
+            finish();
+        }
+        catch(Exception e){
+            destroy = true;
+        }
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        if(destroy){
+            finish();
+        }
+
 
     }
 }

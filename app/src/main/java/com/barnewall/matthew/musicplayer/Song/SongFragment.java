@@ -156,7 +156,7 @@ public class SongFragment extends MusicFragment {
             }
 
             for(SongListViewItem s : songs){
-                temp.set(order.indexOf("'" + s.getDataLocation() + "'"),s);
+                temp.set(order.indexOf("'" + s.getDataLocation().replace("'","''") + "'"),s);
             }
 
             songs = temp;

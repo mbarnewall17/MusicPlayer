@@ -45,6 +45,7 @@ import com.barnewall.matthew.musicplayer.Playlist.PlaylistManager;
 import com.barnewall.matthew.musicplayer.Song.SongFragment;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity implements
@@ -75,10 +76,10 @@ public class MainActivity extends ActionBarActivity implements
     private IBinder                     service;
     private ServiceConnection           connection;
 
-    // Used to pop the PlaybackFragment if it was open when the manager was destoryed
+    // Used to pop the PlaybackFragment if it was open when the manager was destroyed
     private boolean popOnResume;
 
-    // Categories in the navigatino menu
+    // Categories in the navigation menu
     public enum MusicCategories{
         ALBUMS,ARTISTS,PLAYLISTS,SONGS,GENRES,FOLDERS,SETTINGS
     }
@@ -121,6 +122,7 @@ public class MainActivity extends ActionBarActivity implements
         where = null;
         whereCategory = MusicCategories.ARTISTS;
         selectedCategory = MusicCategories.ARTISTS;
+
         popOnResume = false;
     }
 
@@ -197,10 +199,6 @@ public class MainActivity extends ActionBarActivity implements
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
         if (actionBarDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
@@ -216,6 +214,7 @@ public class MainActivity extends ActionBarActivity implements
 
     private float y1,y2;
     static final int MIN_DISTANCE = 50;
+
     /*
      * Toggles between the main activity and the playback fragment
      */
@@ -335,8 +334,13 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     private void handleClick(String[] where, String fragmentName, String fragmentID){
+
+        // Stops the user from clicking anything while the animation is going on
         findViewById(R.id.blockClicksLinearLayout).setClickable(true);
+
         this.where = where;
+
+        // Start the animation to switch fragments
         getFragmentManager().findFragmentById(R.id.fragment_holder).
                 getFragmentManager().beginTransaction()
                 .setCustomAnimations(R.animator.slide_left_off,
@@ -347,8 +351,10 @@ public class MainActivity extends ActionBarActivity implements
                         Fragment.instantiate(this, fragmentName),
                         fragmentID
                 ).addToBackStack(selectedCategory.toString()).commit();
+
         selectedCategory = MusicCategories.valueOf(fragmentID);
 
+        // Don't allow the user to use the navigation drawere
         actionBarDrawerToggle.setDrawerIndicatorEnabled(false);
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
@@ -365,6 +371,7 @@ public class MainActivity extends ActionBarActivity implements
         handleClick(where, AlbumFragment.class.getName(), "ALBUMS");
         setTitle(((ArtistListViewItem) object).getName());
     }
+
     public void handleAlbumOnClick(Object object){
         whereCategory = MusicCategories.ALBUMS;
 
@@ -414,7 +421,6 @@ public class MainActivity extends ActionBarActivity implements
         getApplicationContext().bindService(intent, connection, Context.BIND_AUTO_CREATE);
     }
 
-
     public void handleGenreOnClick(Object object) {
         whereCategory = MusicCategories.GENRES;
 
@@ -427,6 +433,7 @@ public class MainActivity extends ActionBarActivity implements
         handleClick(where, AlbumFragment.class.getName(), "ALBUMS");
         setTitle(((GenreListViewItem) object).getName());
     }
+
     public void handlePlaylistOnClick(Object object){
         PlaylistManager parser = new PlaylistManager(((PlaylistListViewItem) object).getPath(), this);
         ArrayList<String> songs = parser.getSongs();
@@ -466,7 +473,10 @@ public class MainActivity extends ActionBarActivity implements
                     getSupportActionBar().show();
                 }
             } else {
-                super.onBackPressed();
+                Intent i = new Intent();
+                i.setAction(Intent.ACTION_MAIN);
+                i.addCategory(Intent.CATEGORY_HOME);
+                this.startActivity(i);
             }
         }
     }
@@ -479,6 +489,7 @@ public class MainActivity extends ActionBarActivity implements
         manager.skip();
         Log.d(GlobalFunctions.TAG, "song skipped");
     }
+
 
     public void handleBack(View view){
         manager.back();
@@ -670,10 +681,11 @@ public class MainActivity extends ActionBarActivity implements
         final ArrayList<PlaylistListViewItem> playlists = PlaylistFragment.getPlaylists(null, null, null, getContentResolver());
         CharSequence[] names = new CharSequence[playlists.size() + 1];
         names[0] = getResources().getString(R.string.playlist_create_new);
+
         for(int i = 1; i < playlists.size() + 1; i++){
             names[i] = playlists.get(i - 1).toString();
         }
-        Log.d("aaaa", "here");
+
         AlertDialog.Builder dialog = new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.playlist_select))
                 .setItems(names, new DialogInterface.OnClickListener() {
                     @Override
@@ -724,7 +736,23 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     private void menuDelete(View view){
+        // Get the position of the item click (position in parents parent)
+        int position = ((ListView) view.getParent().getParent()).getPositionForView(view);
 
+        // Get the data that created the view
+        Object item = ((ListView) view.getParent().getParent()).getAdapter().getItem(position);
+
+        if(item instanceof SongListViewItem){
+            (new File(((SongListViewItem) item).getDataLocation())).delete();
+            Toast.makeText(this, getResources().getString(R.string.song_removed), Toast.LENGTH_SHORT).show();
+        }
+        else if(item instanceof PlaylistListViewItem){
+            (new File(((PlaylistListViewItem) item).getPath())).delete();
+            Toast.makeText(this, getResources().getString(R.string.playlist_removed), Toast.LENGTH_SHORT).show();
+        }
+        else{
+            Toast.makeText(this, getResources().getString(R.string.cannot_delete), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private ArrayList<SongListViewItem> getSongsFromArtist(ArtistListViewItem artist){
@@ -738,6 +766,12 @@ public class MainActivity extends ActionBarActivity implements
         return SongFragment.getSongs(where, whereParams, MusicCategories.ARTISTS, this, false);
     }
 
+    /*
+     * Retrieves all songs from the album passed in
+     *
+     * @param   album       An AlbumListViewItem containing the information to identify the album
+     * @return  ArrayList   An ArrayList of all songs contained on the album
+     */
     private ArrayList<SongListViewItem> getSongsFromAlbum(AlbumListViewItem album){
 
         String where = MediaStore.Audio.Media.IS_MUSIC + " = ?";
@@ -777,7 +811,6 @@ public class MainActivity extends ActionBarActivity implements
         return getPackageName();
     }
 
-    //TODO: Implement for nowPlayingActivity
     public void destroy(){
         if(isPlaybackShowing()){
             togglePlayback(null);
