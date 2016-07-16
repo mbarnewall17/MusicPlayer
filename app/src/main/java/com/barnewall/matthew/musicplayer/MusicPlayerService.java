@@ -1,8 +1,5 @@
 package com.barnewall.matthew.musicplayer;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,9 +7,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.IBinder;
-import android.util.Log;
-import android.widget.RemoteViews;
-import android.widget.Toast;
 
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
@@ -59,7 +53,7 @@ public class MusicPlayerService extends Service {
     }
 
     public MediaPlayerManager startPlaying(ArrayList<SongListViewItem> queue,int position, ControlListener listener){
-        if(manager != null && manager.getInValidState()){
+        if(manager != null && manager.isInValidState()){
             manager.destroy();
         }
         return manager = new MediaPlayerManager(queue, position, listener);

@@ -388,7 +388,7 @@ public class MediaPlayerManager{
      *
      * @return  boolean A boolean indicating if the manager is in a valid state
      */
-    public boolean getInValidState(){
+    public boolean isInValidState(){
         return isInValidState;
     }
 

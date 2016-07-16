@@ -1,5 +1,6 @@
 package com.barnewall.matthew.musicplayer;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -26,10 +27,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.PopupMenu;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -231,6 +234,7 @@ public class MainActivity extends ActionBarActivity implements
 
                 // Music is playing or could be, show the playback bar
                 if (manager.getNowPlaying() != null) {
+
                     findViewById(R.id.playbackRelativeLayout).setVisibility(View.VISIBLE);
                 }
 
@@ -354,7 +358,7 @@ public class MainActivity extends ActionBarActivity implements
 
         selectedCategory = MusicCategories.valueOf(fragmentID);
 
-        // Don't allow the user to use the navigation drawere
+        // Don't allow the user to use the navigation drawer
         actionBarDrawerToggle.setDrawerIndicatorEnabled(false);
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
@@ -399,13 +403,13 @@ public class MainActivity extends ActionBarActivity implements
         Intent intent = new Intent(this, MusicPlayerService.class);
         this.connection = new ServiceConnection() {
             @Override
-            public void onServiceConnected(ComponentName name, IBinder servic) {
-                service = servic;
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                MainActivity.this.service = service;
 
                 // Don't want this passing in the reference
                 ArrayList<SongListViewItem> passIn = new ArrayList<SongListViewItem>(list);
                 if(passIn.size() != 0) {
-                    manager = ((MusicPlayerService.MyBinder) service).getService().startPlaying(passIn, position, MainActivity.this);
+                    manager = ((MusicPlayerService.MyBinder) MainActivity.this.service).getService().startPlaying(passIn, position, MainActivity.this);
                     if (!isPlaybackShowing()) {
                         findViewById(R.id.playbackRelativeLayout).setVisibility(View.VISIBLE);
                         togglePlayback(null);
@@ -496,7 +500,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public void togglePlay(View view){
-        if(manager.getInValidState() && manager.isPlaying()){
+        if(manager.isInValidState() && manager.isPlaying()){
             manager.pause();
             ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).pause();
             findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_play);
@@ -519,7 +523,7 @@ public class MainActivity extends ActionBarActivity implements
 
     public boolean getNowPlayingBoolean(){
         if(manager != null){
-            return manager.getNowPlaying() != null && manager.getInValidState();
+            return manager.getNowPlaying() != null && manager.isInValidState();
         }
         else{
             return false;
@@ -574,7 +578,7 @@ public class MainActivity extends ActionBarActivity implements
         if(connection != null && service.isBinderAlive()) {
 
             // Destroys the manager if manager is not already destoryed
-            if(manager.getInValidState()){
+            if(manager.isInValidState()){
                 manager.destroy();
             }
         }
@@ -584,14 +588,18 @@ public class MainActivity extends ActionBarActivity implements
          * interface implement method
          */
     public void songPlay(){
-        findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_pause);
+        if(isPlaybackShowing()) {
+            findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_pause);
+        }
     }
 
     /*
      * interface implement method
      */
     public void songPause(){
-        findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_play);
+        if(isPlaybackShowing()) {
+            findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_play);
+        }
     }
 
     @Override
@@ -609,6 +617,7 @@ public class MainActivity extends ActionBarActivity implements
                 else{
                     handleArtistOnClick(new ArtistListViewItem(item.getArtistName(), null, item.getArtistID()));
                 }
+                manager.setListener(this);
             }
         }
 
@@ -691,10 +700,9 @@ public class MainActivity extends ActionBarActivity implements
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        if(which != 0) {
+                        if (which != 0) {
                             addSongsToPlaylist(playlists.get(which).getPath(), view);
-                        }
-                        else{
+                        } else {
                             AlertDialog.Builder playlistName = new AlertDialog.Builder(MainActivity.this)
                                     .setTitle(getResources().getString(R.string.playlist_enter_name));
                             playlistName.setView(MainActivity.this.getLayoutInflater().inflate(R.layout.edit_text, null));
@@ -874,5 +882,9 @@ public class MainActivity extends ActionBarActivity implements
                 view.getBackground().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
                 break;
         }
+    }
+
+    public boolean isInValidState() {
+        return manager.isInValidState();
     }
 }

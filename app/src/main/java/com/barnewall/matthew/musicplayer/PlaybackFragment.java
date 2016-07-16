@@ -1,14 +1,8 @@
 package com.barnewall.matthew.musicplayer;
 
 import android.app.Activity;
-import android.content.ContentUris;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -20,75 +14,27 @@ import android.renderscript.Allocation;
 import android.renderscript.Element;
 import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicBlur;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.barnewall.matthew.musicplayer.Song.SongFragment;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Random;
-
 
 /**
  * Fragment that handles playback of music
  */
 public class PlaybackFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
 
     private OnFragmentInteractionListener mListener;
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment PlaybackFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static PlaybackFragment newInstance(String param1, String param2) {
-        PlaybackFragment fragment = new PlaybackFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     public PlaybackFragment() {
         // Required empty public constructor
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-
     }
 
     @Override
@@ -98,18 +44,13 @@ public class PlaybackFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_playback, container, false);
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
     @Override
     public void onResume() {
         super.onResume();
         // Load the song info incase it changed
-        setInfo(mListener.getNowPlaying());
+        if (mListener.isInValidState()) {
+            setInfo(mListener.getNowPlaying());
+        }
     }
 
     @Override
@@ -142,16 +83,28 @@ public class PlaybackFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
+
         public boolean getNowPlayingBoolean();
+
         public SongListViewItem getNowPlaying();
+
         public int getDuration();
+
         public int getCurrentPosition();
+
         public void seekTo(int position);
+
         public boolean isPlaybackShowing();
+
         public boolean isPaused();
+
         public void togglePlayback(View view);
+
         public boolean isShuffle();
+
         public void setUpRepeatIcon(MediaPlayerManager.Repeat repeat);
+
+        public boolean isInValidState();
     }
 
     @Override
@@ -160,10 +113,9 @@ public class PlaybackFragment extends Fragment {
     }
 
     private Handler handler;
-    private Runnable r;
+    private Runnable incrementSongCurrentTimeEverySecondWhenPlaying;
     private SeekBar seekBar;
     private String duration;
-    private float y1,y2;
     static final int MIN_DISTANCE = 50;
 
     @Override
@@ -173,28 +125,39 @@ public class PlaybackFragment extends Fragment {
         // Connect seekbar resource to variable
         seekBar = ((SeekBar) getActivity().findViewById(R.id.timeSeekBar));
 
+        enableSwipeToCloseOnCollapseBar();
+
+        // Set up the views with the correct info
+        setInfo(mListener.getNowPlaying());
+
+        changeBackgroundColorWhenPlayPauseButtonIsBeingHeldDown();
+
+        setUpSeekBarListener();
+    }
+
+    private float y1, y2;
+
+    private void enableSwipeToCloseOnCollapseBar() {
         // Adds the ability to close the fragment by swiping
         getActivity().findViewById(R.id.collapseBarRelativeLayout).setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()){
-                    case(MotionEvent.ACTION_DOWN):
+                switch (event.getAction()) {
+                    case (MotionEvent.ACTION_DOWN):
                         y1 = event.getY();
                         break;
-                    case(MotionEvent.ACTION_UP):
+                    case (MotionEvent.ACTION_UP):
                         y2 = event.getY();
-                        if((y2-y1) > MIN_DISTANCE){
+                        if ((y2 - y1) > MIN_DISTANCE) {
                             mListener.togglePlayback(null);
                         }
                 }
                 return false;
             }
         });
+    }
 
-        // Set up the views with the correct info
-        setInfo(mListener.getNowPlaying());
-
-        // Turns the button black while it is being held down
+    private void changeBackgroundColorWhenPlayPauseButtonIsBeingHeldDown() {
         getActivity().findViewById(R.id.playImageButton).setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -208,83 +171,105 @@ public class PlaybackFragment extends Fragment {
         });
     }
 
-    public void setInfo(SongListViewItem nowPlaying){
+    public void setInfo(SongListViewItem nowPlaying) {
         // Remove the callbacks on the handler to update the seekbar
         if (handler != null) {
-            handler.removeCallbacks(r);
+            handler.removeCallbacks(incrementSongCurrentTimeEverySecondWhenPlaying);
         }
-        if(nowPlaying != null) {
+        if (nowPlaying != null) {
 
-            // Set the appropriate play/pause icon
-            if (mListener.isPaused()) {
-                getActivity().findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_play);
-            } else {
-                getActivity().findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_pause);
-            }
+            setUpPlayPauseButton();
 
-            // Set up the shuffle icon
-            if(mListener.isShuffle()){
-                getActivity().findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
-            }
-            else{
-                getActivity().findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP);
-            }
+            setUpShuffleButton();
 
-            // Set up the repeat icon
             mListener.setUpRepeatIcon(null);
 
-            // Set up the duration
-            duration = nowPlaying.getDuration();
-            // Gets the duration and sets the max on the seekbar
-            ((TextView) getActivity().findViewById(R.id.endTimeTextView)).setText(nowPlaying.getDuration());
-            seekBar.setMax(getDuration(nowPlaying.getDuration()));
+            setUpDurationTextViews(nowPlaying);
 
-            // Get the current position in the song and sets the seek bar to it. Every second this updates
             seekBar.setProgress(mListener.getCurrentPosition());
+
             handler = new Handler();
-            r = new Runnable() {
+
+            incrementSongCurrentTimeEverySecondWhenPlaying = new Runnable() {
                 @Override
                 public void run() {
                     if (mListener != null && getActivity().findViewById(R.id.currentTimeTextView) != null && mListener.getNowPlayingBoolean()) {
                         int currentTime = mListener.getCurrentPosition();
                         ((TextView) getActivity().findViewById(R.id.currentTimeTextView)).setText(SongFragment.msToMin(Integer.toString(currentTime)));
                         seekBar.setProgress(currentTime);
-                        handler.postDelayed(r, 1000);
+                        handler.postDelayed(incrementSongCurrentTimeEverySecondWhenPlaying, 1000);
                     }
                 }
             };
 
-            // See if handler callbacks are necessary right now
-            assessHandler();
+            checkIfHandlerCallbacksAreNecessary();
 
-            // Gets the album art and sets the view as well as the background using it
-            Bitmap albumArt = GlobalFunctions.getBitmapFromID(nowPlaying.getAlbumID(), 300, getActivity());
-            ((ImageView) getView().findViewById(R.id.albumImageView)).setImageBitmap(albumArt);
-            BitmapDrawable modifiedArt = new BitmapDrawable(BlurBuilder.blur(getActivity(), albumArt));
-            getView().findViewById(R.id.albumWrapperLinearLayout).setBackground(modifiedArt);
+            setUpAlbumArt(nowPlaying);
 
-            // Sets the background of the collapseBarRelativeLayout
-            Drawable drawable = getResources().getDrawable(R.drawable.gradient);
-            drawable.setAlpha(80);
-            getView().findViewById(R.id.collapseBarRelativeLayout).setBackground(drawable);
+            setUpCollapseBarRelativeLayout();
 
-            // Sets the song, artist, and album TextViews
-            ((TextView) getView().findViewById(R.id.songNameTextView)).setText(nowPlaying.getTitle());
-            getView().findViewById(R.id.songNameTextView).setSelected(true);
-            ((TextView) getView().findViewById(R.id.albumNameTextView)).setText(nowPlaying.getAlbumName());
-            getView().findViewById(R.id.albumNameTextView).setSelected(true);
-            ((TextView) getView().findViewById(R.id.artistNameTextView)).setText(nowPlaying.getArtistName());
-            getView().findViewById(R.id.artistNameTextView).setSelected(true);
-        }
-        else{
+            setUpSongMetadataTextViews(nowPlaying);
+        } else {
             mListener.togglePlayback(null);
         }
+    }
+
+    private void setUpPlayPauseButton() {
+        // Set the appropriate play/pause icon
+        if (!mListener.isInValidState() || mListener.isPaused()) {
+            getActivity().findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_play);
+        } else {
+            getActivity().findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_pause);
+        }
+    }
+
+    private void setUpShuffleButton() {
+        // Set up the shuffle icon
+        if (mListener.isShuffle()) {
+            getActivity().findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
+        } else {
+            getActivity().findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP);
+        }
+    }
+
+    private void setUpDurationTextViews(SongListViewItem nowPlaying) {
+        // Set up the duration
+        duration = nowPlaying.getDuration();
+
+        // Gets the duration and sets the max on the seekbar
+        ((TextView) getActivity().findViewById(R.id.endTimeTextView)).setText(nowPlaying.getDuration());
+        seekBar.setMax(getDuration(nowPlaying.getDuration()));
+    }
+
+    private void setUpAlbumArt(SongListViewItem nowPlaying) {
+        // Gets the album art and sets the view as well as the background using it
+        Bitmap albumArt = GlobalFunctions.getBitmapFromID(nowPlaying.getAlbumID(), 300, getActivity());
+        ((ImageView) getView().findViewById(R.id.albumImageView)).setImageBitmap(albumArt);
+        BitmapDrawable modifiedArt = new BitmapDrawable(BlurBuilder.blur(getActivity(), albumArt));
+        getView().findViewById(R.id.albumWrapperLinearLayout).setBackground(modifiedArt);
+    }
+
+    private void setUpCollapseBarRelativeLayout() {
+        // Sets the background of the collapseBarRelativeLayout
+        Drawable drawable = getResources().getDrawable(R.drawable.gradient);
+        drawable.setAlpha(80);
+        getView().findViewById(R.id.collapseBarRelativeLayout).setBackground(drawable);
+    }
+
+    private void setUpSongMetadataTextViews(SongListViewItem nowPlaying) {
+        // Sets the song, artist, and album TextViews
+        ((TextView) getView().findViewById(R.id.songNameTextView)).setText(nowPlaying.getTitle());
+        getView().findViewById(R.id.songNameTextView).setSelected(true);
+        ((TextView) getView().findViewById(R.id.albumNameTextView)).setText(nowPlaying.getAlbumName());
+        getView().findViewById(R.id.albumNameTextView).setSelected(true);
+        ((TextView) getView().findViewById(R.id.artistNameTextView)).setText(nowPlaying.getArtistName());
+        getView().findViewById(R.id.artistNameTextView).setSelected(true);
     }
 
     /*
      * Given a String in the format MM:HH returns an int representation in ms
      */
-    private int getDuration(String text){
+    private int getDuration(String text) {
         String first = text.substring(0, text.indexOf(":"));
         String second = text.substring(text.indexOf(":") + 1);
         int total = Integer.parseInt(first) * 60000;
@@ -292,48 +277,48 @@ public class PlaybackFragment extends Fragment {
         return total;
     }
 
-    public void assessHandler(){
+    public void checkIfHandlerCallbacksAreNecessary() {
         if (mListener.getNowPlayingBoolean()) {
-            handler.postDelayed(r, 1000);
-            seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            handler.postDelayed(incrementSongCurrentTimeEverySecondWhenPlaying, 1000);
 
-                }
-
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
-
-                }
-
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
-                    mListener.seekTo(seekBar.getProgress());
-                    ((TextView) getActivity().findViewById(R.id.currentTimeTextView)).setText(SongFragment.msToMin(Integer.toString(mListener.getCurrentPosition())));
-                }
-            });
         }
     }
 
-    public void pause(){
+    public void setUpSeekBarListener(){
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                mListener.seekTo(seekBar.getProgress());
+                ((TextView) getActivity().findViewById(R.id.currentTimeTextView)).setText(SongFragment.msToMin(Integer.toString(mListener.getCurrentPosition())));
+            }
+        });
+    }
+
+    public void pause() {
         if (handler != null) {
-            handler.removeCallbacks(r);
+            handler.removeCallbacks(incrementSongCurrentTimeEverySecondWhenPlaying);
         }
     }
 
-    public void play(){
-        handler.postDelayed(r, 1000);
+    public void play() {
+        handler.postDelayed(incrementSongCurrentTimeEverySecondWhenPlaying, 1000);
     }
 
-    public void finished(){
+    public void finished() {
         pause();
         seekBar.setProgress(seekBar.getMax());
         ((TextView) getActivity().findViewById(R.id.currentTimeTextView)).setText(duration);
         getActivity().findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_play);
-    }
-
-    public void destroy(){
-
     }
 
 }
