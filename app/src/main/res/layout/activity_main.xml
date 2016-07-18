@@ -11,44 +11,6 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent">
 
-        <fragment
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:id="@+id/fragment_holder"
-            android:name="com.barnewall.matthew.musicplayer.Artist.ArtistFragment"
-            tools:layout="@layout/fragment_listings" />
-
-        <RelativeLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:clickable="true"
-            android:background="@color/expandPlaybackColor"
-            android:visibility="gone"
-            android:id="@+id/playbackRelativeLayout"
-            android:onClick="togglePlayback">
-
-            <ImageButton
-                android:layout_width="@dimen/iconSize"
-                android:layout_height="@dimen/iconSize"
-                android:scaleType="centerCrop"
-                android:id="@+id/expandPlaybackButton"
-                android:background="@drawable/ic_action_collapse"
-                android:onClick="togglePlayback"
-                android:layout_centerVertical="true" />
-
-            <ImageButton
-                android:layout_width="@dimen/iconSize"
-                android:layout_height="@dimen/iconSize"
-                android:id="@+id/playbackSettingsImageButton"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentEnd="true"
-                android:background="@drawable/ic_action_overflow"
-                android:layout_centerVertical="true" />
-        </RelativeLayout>
-
 
         <LinearLayout
             android:orientation="vertical"
@@ -56,6 +18,48 @@
             android:layout_height="fill_parent"
             android:background="#00000000"
             android:id="@+id/blockClicksLinearLayout"></LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <fragment
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:id="@+id/fragment_holder"
+                android:name="com.barnewall.matthew.musicplayer.Artist.ArtistFragment"
+                tools:layout="@layout/fragment_listings"
+                android:layout_weight="1" />
+
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:background="@color/expandPlaybackColor"
+                android:visibility="gone"
+                android:id="@+id/playbackRelativeLayout"
+                android:onClick="togglePlayback">
+
+                <ImageButton
+                    android:layout_width="@dimen/iconSize"
+                    android:layout_height="@dimen/iconSize"
+                    android:scaleType="centerCrop"
+                    android:id="@+id/expandPlaybackButton"
+                    android:background="@drawable/ic_action_collapse"
+                    android:onClick="togglePlayback"
+                    android:layout_centerVertical="true" />
+
+                <ImageButton
+                    android:layout_width="@dimen/iconSize"
+                    android:layout_height="@dimen/iconSize"
+                    android:id="@+id/playbackSettingsImageButton"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:background="@drawable/ic_action_overflow"
+                    android:layout_centerVertical="true" />
+            </RelativeLayout>
+        </LinearLayout>
 
     </RelativeLayout>
 
