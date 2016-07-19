@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,13 +12,12 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.barnewall.matthew.musicplayer.Album.AlbumAdapter;
-import com.barnewall.matthew.musicplayer.Album.AlbumListViewItem;
 import com.barnewall.matthew.musicplayer.GlobalFunctions;
 import com.barnewall.matthew.musicplayer.MainActivity;
 import com.barnewall.matthew.musicplayer.MusicFragment;
 import com.barnewall.matthew.musicplayer.R;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -74,7 +72,7 @@ public class AlbumFragment extends MusicFragment {
                 , columns                                      //Columns
                 , where                                        //Where
                 , whereParams                                  //Where variables
-                , MediaStore.Audio.Albums.ALBUM + " ASC");     //Order By
+                , MediaStore.Audio.Media.YEAR + " ASC");     //Order By
 
         // Arraylist of AlbumListViewItems that will be filled from the database query
         ArrayList<AlbumListViewItem> albums = new ArrayList<AlbumListViewItem>();
@@ -110,8 +108,36 @@ public class AlbumFragment extends MusicFragment {
             while (musicCursor.moveToNext());
         }
 
-        // Remove duplicate albums
         removeDuplicates(albums);
+
+        Collections.sort(albums, new Comparator<AlbumListViewItem>() {
+            @Override
+            public int compare(AlbumListViewItem first, AlbumListViewItem second) {
+                if(first == null && second == null){
+                    return 0;
+                }
+                else if(first == null){
+                    return -1;
+                }
+                else if(second == null){
+                    return 1;
+                }
+                else{
+                    if(first.getOther() == null && second.getOther() == null){
+                        return first.getTitle().compareTo(second.getTitle());
+                    }
+                    else if(first.getOther() != null && second.getOther() != null) {
+                        return Integer.parseInt(first.getOther()) - Integer.parseInt(second.getOther());
+                    }
+                    else if(first.getOther() != null){
+                        return -1;
+                    }
+                    else{
+                        return 1;
+                    }
+                }
+            }
+        });
 
         // Set the adapter
         adapter = new AlbumAdapter(albums, getActivity());
@@ -144,18 +170,10 @@ public class AlbumFragment extends MusicFragment {
         return duplicates;
     }
 
-
-
-
-
-
-
-
     private AbsListView.OnScrollListener createListener(){
         return new AbsListView.OnScrollListener() {
 
-            // AlbumListViewItems with set album arts
-            private ArrayList<AlbumListViewItem> setArtworks = new ArrayList<AlbumListViewItem>();
+            private ArrayList<AlbumListViewItem> albumsWithSetArtwork = new ArrayList<AlbumListViewItem>();
             private boolean finished = true;
 
             @Override
@@ -198,8 +216,8 @@ public class AlbumFragment extends MusicFragment {
                                         }
 
                                         // Remove from list of set artworks if already in there, keeps album art from being reset
-                                        if (setArtworks.indexOf(item) != -1) {
-                                            setArtworks.remove(item);
+                                        if (albumsWithSetArtwork.indexOf(item) != -1) {
+                                            albumsWithSetArtwork.remove(item);
                                         }
 
                                         // Add item to list of set items
@@ -208,12 +226,12 @@ public class AlbumFragment extends MusicFragment {
                                 }
 
                                 // Clear old album artwork
-                                for (AlbumListViewItem a : setArtworks) {
+                                for (AlbumListViewItem a : albumsWithSetArtwork) {
                                     a.setAlbumArt(null);
                                 }
 
-                                // change setArtworks to reflect currently set artworks
-                                setArtworks = new ArrayList<AlbumListViewItem>(temp);
+                                // change albumsWithSetArtwork to reflect currently set artworks
+                                albumsWithSetArtwork = new ArrayList<AlbumListViewItem>(temp);
 
                                 // Run UI changes on main thread
                                 getActivity().runOnUiThread(new Runnable() {

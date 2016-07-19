@@ -24,6 +24,8 @@ import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * Created by Matthew on 2/29/2016.
@@ -167,6 +169,36 @@ public class SongFragment extends MusicFragment {
                     i--;
                 }
             }
+        }
+        else if(category == MainActivity.MusicCategories.ALBUMS){
+            Collections.sort(songs, new Comparator<SongListViewItem>() {
+                @Override
+                public int compare(SongListViewItem first, SongListViewItem second) {
+                    if(first == null && second == null){
+                        return 0;
+                    }
+                    else if(first == null){
+                        return 1;
+                    }
+                    else if(second == null){
+                        return -1;
+                    }
+                    else{
+                        if((first.getTrackNumber() == null || first.getTrackNumber().isEmpty()) && (first.getTrackNumber() == null || first.getTrackNumber().isEmpty())){
+                            return 0;
+                        }
+                        else if(first.getTrackNumber() == null || first.getTrackNumber().isEmpty()){
+                            return 1;
+                        }
+                        else if(second.getTrackNumber() == null || second.getTrackNumber().isEmpty()){
+                            return  -1;
+                        }
+                        else{
+                            return Integer.parseInt(first.getTrackNumber()) - Integer.parseInt(second.getTrackNumber());
+                        }
+                    }
+                }
+            });
         }
         return songs;
     }

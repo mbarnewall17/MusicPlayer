@@ -113,6 +113,4 @@ public class AlbumListViewItem implements Comparable<AlbumListViewItem>{
         }
         return firstTitle.compareTo(secondTitle);
     }
-
-
 }
