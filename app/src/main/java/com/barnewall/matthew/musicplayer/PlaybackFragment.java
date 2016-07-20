@@ -122,12 +122,10 @@ public class PlaybackFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Connect seekbar resource to variable
         seekBar = ((SeekBar) getActivity().findViewById(R.id.timeSeekBar));
 
         enableSwipeToCloseOnCollapseBar();
 
-        // Set up the views with the correct info
         setInfo(mListener.getNowPlaying());
 
         changeBackgroundColorWhenPlayPauseButtonIsBeingHeldDown();

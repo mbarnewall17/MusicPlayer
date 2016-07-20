@@ -29,7 +29,7 @@ public class MusicPlayerService extends Service {
                 manager.updateNowPlayingPosition();
             }
             else if(intent.getAction().equals(NotificationManagement.EXIT_MUSIC)){
-                manager.destroy();
+                manager.endPlayback();
                 NotificationManagement.removeNotification(getApplicationContext());
             }
             else if(intent.getAction().equals(NotificationManagement.PAUSE_MUSIC)){
@@ -54,7 +54,7 @@ public class MusicPlayerService extends Service {
 
     public MediaPlayerManager startPlaying(ArrayList<SongListViewItem> queue,int position, ControlListener listener){
         if(manager != null && manager.isInValidState()){
-            manager.destroy();
+            manager.endPlayback();
         }
         return manager = new MediaPlayerManager(queue, position, listener);
     }

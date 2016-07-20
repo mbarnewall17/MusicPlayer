@@ -1,6 +1,5 @@
 package com.barnewall.matthew.musicplayer;
 
-import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -27,12 +26,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.PopupMenu;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -500,16 +497,10 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public void togglePlay(View view){
-        if(manager.isInValidState() && manager.isPlaying()){
+        if(manager.isInValidState() && manager.isPlaying())
             manager.pause();
-            ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).pause();
-            findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_play);
-        }
-        else{
+        else
             manager.play();
-            ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).play();
-            findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_pause);
-        }
     }
 
     public SongListViewItem getNowPlaying(){
@@ -579,7 +570,7 @@ public class MainActivity extends ActionBarActivity implements
 
             // Destroys the manager if manager is not already destoryed
             if(manager.isInValidState()){
-                manager.destroy();
+                manager.endPlayback();
             }
         }
     }
@@ -590,6 +581,7 @@ public class MainActivity extends ActionBarActivity implements
     public void songPlay(){
         if(isPlaybackShowing()) {
             findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_pause);
+            ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).play();
         }
     }
 
@@ -599,6 +591,7 @@ public class MainActivity extends ActionBarActivity implements
     public void songPause(){
         if(isPlaybackShowing()) {
             findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_play);
+            ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).pause();
         }
     }
 
@@ -657,7 +650,7 @@ public class MainActivity extends ActionBarActivity implements
 
         // Release the old manager and start the new one
         if(manager != null) {
-            manager.destroy();
+            manager.endPlayback();
         }
         handleSongOnClick(newSongs, 0);
     }
@@ -830,7 +823,7 @@ public class MainActivity extends ActionBarActivity implements
     public void onResume(){
         super.onResume();
 
-        // If destroy was called when the app was closed, call destroy when reopened
+        // If endPlayback was called when the app was closed, call endPlayback when reopened
         if(popOnResume){
             destroy();
         }

@@ -31,8 +31,6 @@ public class NotificationManagement {
         long when = System.currentTimeMillis();
         Notification notification = new Notification(icon,null,when);
 
-        NotificationManager mNotificationManager = (NotificationManager)context.getSystemService(context.NOTIFICATION_SERVICE);
-
         RemoteViews contentView = new RemoteViews(packageName, R.layout.play_music_notification);
         contentView.setImageViewResource(R.id.image, R.drawable.no_album_art);
         contentView.setTextViewText(R.id.notificationSongTextView, songName);
@@ -67,9 +65,6 @@ public class NotificationManagement {
 
         notification.flags |= Notification.FLAG_NO_CLEAR;
         return notification;
-    }
-
-    public static void updateNotification(){
     }
 
     public static void removeNotification(Context context){
