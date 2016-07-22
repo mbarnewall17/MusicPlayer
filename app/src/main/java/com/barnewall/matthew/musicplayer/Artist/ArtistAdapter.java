@@ -57,6 +57,8 @@ public class ArtistAdapter extends BaseAdapter{
         name.setSelected(true);
         extra.setText(lv.getNumAlbums());
 
+        convertView.findViewById(R.id.popMenuButton).setTag(position);
+
         return convertView;
     }
 

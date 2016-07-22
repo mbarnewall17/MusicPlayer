@@ -16,7 +16,7 @@ import java.util.HashMap;
 /**
  * Created by Matthew on 8/5/2015.
  */
-public class SongAdapter extends BaseAdapter{
+public class SongAdapter extends BaseAdapter {
     private Context context;
     private ArrayList<SongListViewItem> data;
     private LayoutInflater layoutInflater;
@@ -24,7 +24,7 @@ public class SongAdapter extends BaseAdapter{
 
     HashMap<SongListViewItem, Integer> mIdMap = new HashMap<SongListViewItem, Integer>();
 
-    public SongAdapter(ArrayList<SongListViewItem> items, Context context){
+    public SongAdapter(ArrayList<SongListViewItem> items, Context context) {
         this.context = context;
         this.data = items;
         this.layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -55,27 +55,26 @@ public class SongAdapter extends BaseAdapter{
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         //Create the view if it does not exist
-        if(convertView == null){
+        if (convertView == null) {
             convertView = layoutInflater.inflate(R.layout.song_listview_item, parent, false);
         }
 
         //Get the views
-        TextView    name    = (TextView)    convertView.findViewById(R.id.songNameTextview);
-        TextView    extra   = (TextView)    convertView.findViewById(R.id.artistNameAndDurationTextView);
-        TextView    track   = (TextView)    convertView.findViewById(R.id.trackNumberTextView);
+        TextView name = (TextView) convertView.findViewById(R.id.songNameTextview);
+        TextView extra = (TextView) convertView.findViewById(R.id.artistNameAndDurationTextView);
+        TextView track = (TextView) convertView.findViewById(R.id.trackNumberTextView);
 
-        //Set the views to correct values
         SongListViewItem lv = data.get(position);
         name.setText(lv.getTitle());
         name.setSelected(true);
         extra.setText(lv.getArtistName() + "(" + lv.getDuration() + ")");
-        if(lv.getTrackNumber() == null){
+        if (lv.getTrackNumber() == null) {
             track.setVisibility(View.GONE);
-        }
-        else{
+        } else {
             track.setText(lv.getTrackNumber());
         }
 
+        convertView.findViewById(R.id.popMenuButton).setTag(position);
 
         return convertView;
     }

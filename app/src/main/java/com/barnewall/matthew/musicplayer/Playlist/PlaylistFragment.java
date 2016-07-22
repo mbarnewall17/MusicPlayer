@@ -26,7 +26,7 @@ public class PlaylistFragment extends MusicFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_playlist, container, false);
+        return inflater.inflate(R.layout.fragment_music_item_listview, container, false);
     }
 
     public void populateListView(String where, String[] whereParams, MainActivity.MusicCategories category) {
@@ -34,7 +34,7 @@ public class PlaylistFragment extends MusicFragment {
         final ArrayList<PlaylistListViewItem> playlists = getPlaylists(where, whereParams, category, getActivity().getContentResolver());
         // Set the adapter
         PlaylistAdapter adapter = new PlaylistAdapter(playlists, getActivity());
-        ListView listView = (ListView) getView().findViewById(R.id.playlistListView);
+        ListView listView = (ListView) getView().findViewById(R.id.musicItemListView);
         listView.setAdapter(adapter);
 
         // Set the OnItemClickListener

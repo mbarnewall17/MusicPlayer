@@ -29,7 +29,10 @@ public class NotificationManagement {
 
         int icon = R.drawable.ic_launcher;
         long when = System.currentTimeMillis();
-        Notification notification = new Notification(icon,null,when);
+        Notification notification = new Notification.Builder(context)
+                .setSmallIcon(icon)
+                .setWhen(when)
+                .build();
 
         RemoteViews contentView = new RemoteViews(packageName, R.layout.play_music_notification);
         contentView.setImageViewResource(R.id.image, R.drawable.no_album_art);
@@ -53,7 +56,7 @@ public class NotificationManagement {
         Intent pauseIntent = new Intent(PAUSE_MUSIC);
         PendingIntent pausePendingIntent = PendingIntent.getBroadcast(context, 0, pauseIntent, 0);
         contentView.setOnClickPendingIntent(R.id.notificationPauseButton, pausePendingIntent);
-        notification.contentView = contentView;
+        notification.bigContentView = contentView;
 
 
         Intent notificationIntent = new Intent(context, MainActivity.class);

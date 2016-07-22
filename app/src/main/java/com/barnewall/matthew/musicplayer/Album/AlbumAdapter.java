@@ -64,6 +64,8 @@ public class AlbumAdapter extends BaseAdapter{
         extra.setText(extraText);
         art.setImageBitmap(lv.getAlbumArt());
 
+        convertView.findViewById(R.id.popMenuButton).setTag(position);
+
         return convertView;
     }
 }

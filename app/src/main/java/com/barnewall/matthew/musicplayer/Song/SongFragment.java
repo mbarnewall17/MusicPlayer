@@ -48,7 +48,7 @@ public class SongFragment extends MusicFragment {
         // Add adapter
         final ArrayList<SongListViewItem> items = new ArrayList<SongListViewItem>(songs);
         final SongAdapter adapter = new SongAdapter(songs, getActivity());
-        ListView listView = (ListView) getView().findViewById(R.id.songListView);
+        ListView listView = (ListView) getView().findViewById(R.id.musicItemListView);
         listView.setAdapter(adapter);
         listView.setFastScrollEnabled(true);
 

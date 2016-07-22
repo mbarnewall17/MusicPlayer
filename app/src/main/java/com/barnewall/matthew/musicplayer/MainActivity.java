@@ -618,15 +618,12 @@ public class MainActivity extends ActionBarActivity implements
 
     private ArrayList<SongListViewItem> menuGetSongs(View view){
 
-        // Get the position of the item click (position in parents parent)
-        int position = ((ListView) view.getParent().getParent()).getPositionForView(view);
+        int position = (int) view.getTag();
 
-        // Get the data that created the view
-        Object item = ((ListView) view.getParent().getParent()).getAdapter().getItem(position);
+        Object item = ((ListView)findViewById(R.id.musicItemListView)).getAdapter().getItem(position);
 
         ArrayList<SongListViewItem> newSongs = new ArrayList<SongListViewItem>();
 
-        // Do appropriate action based on what the item is
         if(item instanceof SongListViewItem){
             newSongs.add((SongListViewItem) item);
         }
@@ -694,7 +691,7 @@ public class MainActivity extends ActionBarActivity implements
                     public void onClick(DialogInterface dialog, int which) {
 
                         if (which != 0) {
-                            addSongsToPlaylist(playlists.get(which).getPath(), view);
+                            addSongsToPlaylist(playlists.get(which - 1).getPath(), view);
                         } else {
                             AlertDialog.Builder playlistName = new AlertDialog.Builder(MainActivity.this)
                                     .setTitle(getResources().getString(R.string.playlist_enter_name));

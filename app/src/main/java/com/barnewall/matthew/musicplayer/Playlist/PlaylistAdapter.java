@@ -56,6 +56,8 @@ public class PlaylistAdapter extends BaseAdapter {
         name.setText(lv.getName());
         name.setSelected(true);
 
+        convertView.findViewById(R.id.popMenuButton).setTag(position);
+
         return convertView;
     }
 }
