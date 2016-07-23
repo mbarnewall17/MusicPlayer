@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.support.v4.app.NotificationCompat;
 import android.widget.RemoteViews;
 
 /**
@@ -16,6 +17,8 @@ public class NotificationManagement {
     private static final int NOTIFICATION_ID = 253;
     public static final String EXIT_MUSIC = "EXIT_MUSIC";
     public static final String PAUSE_MUSIC = "PAUSE_MUSIC";
+    public static final String BACK_MUSIC = "mbarnewall_BACK_MUSIC";
+    public static final String NEXT_MUSIC = "mbarnewall_NEXT_MUSIC";
 
     public static void createNotification(Context context, String packageName, String songName,
                                           String artistName, Bitmap artwork, boolean playing){;
@@ -56,6 +59,15 @@ public class NotificationManagement {
         Intent pauseIntent = new Intent(PAUSE_MUSIC);
         PendingIntent pausePendingIntent = PendingIntent.getBroadcast(context, 0, pauseIntent, 0);
         contentView.setOnClickPendingIntent(R.id.notificationPauseButton, pausePendingIntent);
+
+        Intent backIntent = new Intent(BACK_MUSIC);
+        PendingIntent backPendingIntent = PendingIntent.getBroadcast(context, 0, backIntent, 0);
+        contentView.setOnClickPendingIntent(R.id.notificationBackButton, backPendingIntent);
+
+        Intent nextIntent = new Intent(NEXT_MUSIC);
+        PendingIntent nextPendingIntent = PendingIntent.getBroadcast(context,0,nextIntent,0);
+        contentView.setOnClickPendingIntent(R.id.notificationNextButton, nextPendingIntent);
+
         notification.bigContentView = contentView;
 
 
@@ -67,6 +79,7 @@ public class NotificationManagement {
         notification.contentIntent = contentIntent;
 
         notification.flags |= Notification.FLAG_NO_CLEAR;
+        notification.priority = Notification.PRIORITY_MAX;
         return notification;
     }
 

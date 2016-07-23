@@ -20,7 +20,7 @@ public class PlaylistAdapter extends BaseAdapter {
     private ArrayList<PlaylistListViewItem> data;
     private LayoutInflater layoutInflater;
 
-    public PlaylistAdapter(ArrayList<PlaylistListViewItem> items, Context context){
+    public PlaylistAdapter(ArrayList<PlaylistListViewItem> items, Context context) {
         this.context = context;
         this.data = items;
         this.layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -43,15 +43,11 @@ public class PlaylistAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        //Create the view if it does not exist
-        if(convertView == null){
+        if (convertView == null)
             convertView = layoutInflater.inflate(R.layout.playlist_listview_item, parent, false);
-        }
 
-        //Get the views
-        TextView name    = (TextView)    convertView.findViewById(R.id.playlistNameTextview);
+        TextView name = (TextView) convertView.findViewById(R.id.playlistNameTextview);
 
-        //Set the views to correct values
         PlaylistListViewItem lv = data.get(position);
         name.setText(lv.getName());
         name.setSelected(true);

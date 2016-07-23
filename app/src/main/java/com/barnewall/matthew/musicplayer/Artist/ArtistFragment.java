@@ -30,7 +30,7 @@ public class ArtistFragment extends MusicFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_music_item_listview, container, false);
+        return inflater.inflate(R.layout.fragment_artist_listview, container, false);
     }
 
     @Override
@@ -112,7 +112,7 @@ public class ArtistFragment extends MusicFragment {
 
             // Set adapter
             final ArtistAdapter adapter = new ArtistAdapter(artist, getActivity());
-            ListView listView = ((ListView) getView().findViewById(R.id.musicItemListView));
+            ListView listView = ((ListView) getView().findViewById(R.id.musicItemArtistListView));
             listView.setFastScrollEnabled(true);
             listView.setAdapter(adapter);
 

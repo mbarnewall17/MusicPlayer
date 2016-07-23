@@ -19,7 +19,7 @@
 
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:id="@+id/musicItemListView"
+        android:id="@+id/musicItemSongListView"
         android:layout_below="@+id/albumImageView"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>

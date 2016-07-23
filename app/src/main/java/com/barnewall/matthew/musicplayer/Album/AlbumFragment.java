@@ -36,7 +36,7 @@ public class AlbumFragment extends MusicFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_music_item_listview, container, false);
+        return inflater.inflate(R.layout.fragment_album_listview, container, false);
     }
 
 
@@ -140,7 +140,7 @@ public class AlbumFragment extends MusicFragment {
 
         // Set the adapter
         adapter = new AlbumAdapter(albums, getActivity());
-        ListView listView = (ListView) getView().findViewById(R.id.musicItemListView);
+        ListView listView = (ListView) getView().findViewById(R.id.musicItemAlbumListView);
         listView.setAdapter(adapter);
 
         // Add OnItemClickListener

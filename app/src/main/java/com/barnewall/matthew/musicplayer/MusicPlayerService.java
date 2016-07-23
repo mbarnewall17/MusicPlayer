@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
@@ -41,7 +42,10 @@ public class MusicPlayerService extends Service {
                 }
 
             }
-
+            else if(intent.getAction().equals(NotificationManagement.BACK_MUSIC))
+                manager.back();
+            else if(intent.getAction().equals(NotificationManagement.NEXT_MUSIC))
+                manager.skip();
         }
     };
 
@@ -76,6 +80,8 @@ public class MusicPlayerService extends Service {
         intentFilter.addAction(UPDATE_QUEUE);
         intentFilter.addAction(NotificationManagement.EXIT_MUSIC);
         intentFilter.addAction(NotificationManagement.PAUSE_MUSIC);
+        intentFilter.addAction(NotificationManagement.BACK_MUSIC);
+        intentFilter.addAction(NotificationManagement.NEXT_MUSIC);
         registerReceiver(receiver, intentFilter);
 
     }

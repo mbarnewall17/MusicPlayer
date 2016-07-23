@@ -26,7 +26,7 @@ public class GenreFragment extends MusicFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_music_item_listview, container, false);
+        return inflater.inflate(R.layout.fragment_genre_listview, container, false);
     }
 
     @Override
@@ -84,7 +84,7 @@ public class GenreFragment extends MusicFragment {
 
         // Set the adapter
         final GenreAdapter adapter = new GenreAdapter(genres, getActivity());
-        ListView listView = (ListView) getView().findViewById(R.id.musicItemListView);
+        ListView listView = (ListView) getView().findViewById(R.id.musicItemGenreListView);
         listView.setAdapter(adapter);
 
         // Set OnItemClickListener

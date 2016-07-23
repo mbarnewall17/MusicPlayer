@@ -48,7 +48,7 @@ public class SongFragment extends MusicFragment {
         // Add adapter
         final ArrayList<SongListViewItem> items = new ArrayList<SongListViewItem>(songs);
         final SongAdapter adapter = new SongAdapter(songs, getActivity());
-        ListView listView = (ListView) getView().findViewById(R.id.musicItemListView);
+        ListView listView = (ListView) getView().findViewById(R.id.musicItemSongListView);
         listView.setAdapter(adapter);
         listView.setFastScrollEnabled(true);
 
@@ -149,16 +149,20 @@ public class SongFragment extends MusicFragment {
 
         // Put the songs in the correct order of the playlist
         if(category == MainActivity.MusicCategories.PLAYLISTS){
-            where = where.substring(10,where.length() - 1);
-            ArrayList<String> order = new ArrayList(Arrays.asList(where.split(", ")));
+            where = where.substring(11,where.length() - 1);
+            ArrayList<String> order = new ArrayList(Arrays.asList(where.split(", '")));
 
             ArrayList<SongListViewItem> temp = new ArrayList<SongListViewItem>(order.size());
             for(int i = 0; i < order.size(); i++){
                 temp.add(null);
             }
 
+            for(String s: order){
+                Log.d("AAA",s);
+            }
+
             for(SongListViewItem s : songs){
-                temp.set(order.indexOf("'" + s.getDataLocation().replace("'","''") + "'"),s);
+                temp.set(order.indexOf(s.getDataLocation().replace("'","''") + "'"),s);
             }
 
             songs = temp;

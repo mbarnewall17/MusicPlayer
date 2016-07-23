@@ -46,6 +46,7 @@ import com.barnewall.matthew.musicplayer.Song.SongFragment;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity implements
@@ -56,32 +57,32 @@ public class MainActivity extends ActionBarActivity implements
     // Instance Variables
 
     // Navigation Menu
-    private DrawerLayout                drawerLayout;
-    private ListView                    drawerListView;
-    private ActionBarDrawerToggle       actionBarDrawerToggle;
+    private DrawerLayout drawerLayout;
+    private ListView drawerListView;
+    private ActionBarDrawerToggle actionBarDrawerToggle;
 
     // Currently selected category in the navigation menu
-    private MusicCategories             selectedCategory;
-    private View                        selectedCategoryView;
+    private MusicCategories selectedCategory;
+    private View selectedCategoryView;
 
     // Array containing where clause for the MusicFragment subclasses
     // First index is the where string, all subsequent indexes are the values for the where string
-    private String[]                    where;
-    private MusicCategories             whereCategory;
+    private String[] where;
+    private MusicCategories whereCategory;
 
     // Music playback controls
-    private MediaPlayerManager          manager;
+    private MediaPlayerManager manager;
 
     // Variables for interacting with service that plays the music
-    private IBinder                     service;
-    private ServiceConnection           connection;
+    private IBinder service;
+    private ServiceConnection connection;
 
     // Used to pop the PlaybackFragment if it was open when the manager was destroyed
     private boolean popOnResume;
 
     // Categories in the navigation menu
-    public enum MusicCategories{
-        ALBUMS,ARTISTS,PLAYLISTS,SONGS,GENRES,FOLDERS,SETTINGS
+    public enum MusicCategories {
+        ALBUMS, ARTISTS, PLAYLISTS, SONGS, GENRES, FOLDERS, SETTINGS
     }
 
     @Override
@@ -106,7 +107,7 @@ public class MainActivity extends ActionBarActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        startService(new Intent(this,MyService.class));
+        startService(new Intent(this, MyService.class));
 
         // Sets the audio stream so volume changes affect music volume not system volume
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -129,19 +130,19 @@ public class MainActivity extends ActionBarActivity implements
     /*
      * Sets up the navigation drawer
      */
-    private void setUpNavigationDrawer(){
+    private void setUpNavigationDrawer() {
         // Link views with code
-        drawerLayout    = (DrawerLayout) findViewById(R.id.mainDrawerLayout);
-        drawerListView  = (ListView) findViewById(R.id.leftDrawerListView);
+        drawerLayout = (DrawerLayout) findViewById(R.id.mainDrawerLayout);
+        drawerListView = (ListView) findViewById(R.id.leftDrawerListView);
 
         // Set the list's click listener
         drawerListView.setOnItemClickListener(new DrawerItemClickListener());
-        actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout,  R.drawable.ic_drawer, R.string.app_name, R.string.app_name){
+        actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.drawable.ic_drawer, R.string.app_name, R.string.app_name) {
 
             // Sets the title
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
-                if(selectedCategory != null){
+                if (selectedCategory != null) {
                     setTitle(selectedCategory.toString());
                 }
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
@@ -150,7 +151,7 @@ public class MainActivity extends ActionBarActivity implements
             /** Called when a drawer has settled in a completely open state. */
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
-                if(selectedCategory != null){
+                if (selectedCategory != null) {
                     setTitle(selectedCategory.toString());
                 }
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
@@ -165,7 +166,7 @@ public class MainActivity extends ActionBarActivity implements
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
             // Change the background color of the old selected view to the navigation drawer color
-            if(selectedCategoryView != null){
+            if (selectedCategoryView != null) {
                 selectedCategoryView.setBackgroundColor(getResources().getColor(R.color.navColor));
             }
 
@@ -178,7 +179,7 @@ public class MainActivity extends ActionBarActivity implements
             setTitle(selectedCategory.toString());
 
             // Change the category
-            if(!selectedCategory.equals(MusicCategories.FOLDERS) && !selectedCategory.equals(MusicCategories.SETTINGS)) {
+            if (!selectedCategory.equals(MusicCategories.FOLDERS) && !selectedCategory.equals(MusicCategories.SETTINGS)) {
                 changeCategory(selectedCategory);
             }
             drawerListView.setItemChecked(position, true);
@@ -212,13 +213,13 @@ public class MainActivity extends ActionBarActivity implements
     }
 
 
-    private float y1,y2;
+    private float y1, y2;
     static final int MIN_DISTANCE = 50;
 
     /*
      * Toggles between the main activity and the playback fragment
      */
-    public void togglePlayback(View view){
+    public void togglePlayback(View view) {
 
         Fragment f = getFragmentManager()
                 .findFragmentByTag("Playback");
@@ -252,8 +253,7 @@ public class MainActivity extends ActionBarActivity implements
                         return false;
                     }
                 });
-            }
-            catch(IllegalStateException e){
+            } catch (IllegalStateException e) {
                 popOnResume = true;
             }
         }
@@ -278,7 +278,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     // Creates a popup menu of options for the song, artist, album
-    public void createPopUp(final View view){
+    public void createPopUp(final View view) {
         PopupMenu popup = new PopupMenu(this, view);
         MenuInflater inflater = popup.getMenuInflater();
         inflater.inflate(R.menu.pop_up_menu, popup.getMenu());
@@ -303,11 +303,11 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     // Change the current fragment based on the category passed in
-    public void changeCategory(MusicCategories category){
+    public void changeCategory(MusicCategories category) {
         where = null;
         whereCategory = MusicCategories.SETTINGS;
         Fragment fragment;
-        switch(category){
+        switch (category) {
             case ALBUMS:
                 fragment = new AlbumFragment();
                 break;
@@ -334,7 +334,7 @@ public class MainActivity extends ActionBarActivity implements
 
     }
 
-    private void handleClick(String[] where, String fragmentName, String fragmentID){
+    private void handleClick(String[] where, String fragmentName, String fragmentID) {
 
         // Stops the user from clicking anything while the animation is going on
         findViewById(R.id.blockClicksLinearLayout).setClickable(true);
@@ -361,26 +361,26 @@ public class MainActivity extends ActionBarActivity implements
 
     }
 
-    public void handleArtistOnClick(Object object){
+    public void handleArtistOnClick(Object object) {
         whereCategory = MusicCategories.ARTISTS;
 
         // Select albums where artistID = artistID and isMusic = 1
         where = new String[3];
-        where[0] = MediaStore.Audio.Media.ARTIST_ID + " =? AND " + MediaStore.Audio.Media.IS_MUSIC  + "=?";
+        where[0] = MediaStore.Audio.Media.ARTIST_ID + " =? AND " + MediaStore.Audio.Media.IS_MUSIC + "=?";
         where[1] = ((ArtistListViewItem) object).getArtistID();
         where[2] = "1";
         handleClick(where, AlbumFragment.class.getName(), "ALBUMS");
         setTitle(((ArtistListViewItem) object).getName());
     }
 
-    public void handleAlbumOnClick(Object object){
+    public void handleAlbumOnClick(Object object) {
         whereCategory = MusicCategories.ALBUMS;
 
         AlbumListViewItem item = (AlbumListViewItem) object;
 
         String whereText = MediaStore.Audio.Media.IS_MUSIC + " = ?";
-        whereText = whereText + " AND " +  MediaStore.Audio.Media.ARTIST_ID + "=?";
-        whereText = whereText + " AND (" + MediaStore.Audio.Media.ALBUM  + " = ?";
+        whereText = whereText + " AND " + MediaStore.Audio.Media.ARTIST_ID + "=?";
+        whereText = whereText + " AND (" + MediaStore.Audio.Media.ALBUM + " = ?";
         whereText = whereText + " OR " + MediaStore.Audio.Media.ALBUM_ID + " = ? )";
         where = new String[5];
         where[0] = whereText;                           // Where text
@@ -394,7 +394,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
 
-    public void handleSongOnClick(final ArrayList<SongListViewItem> list, final int position){
+    public void handleSongOnClick(final ArrayList<SongListViewItem> list, final int position) {
 
         // If no song has been played yet launch the service and connect to it
         Intent intent = new Intent(this, MusicPlayerService.class);
@@ -405,7 +405,7 @@ public class MainActivity extends ActionBarActivity implements
 
                 // Don't want this passing in the reference
                 ArrayList<SongListViewItem> passIn = new ArrayList<SongListViewItem>(list);
-                if(passIn.size() != 0) {
+                if (passIn.size() != 0) {
                     manager = ((MusicPlayerService.MyBinder) MainActivity.this.service).getService().startPlaying(passIn, position, MainActivity.this);
                     if (!isPlaybackShowing()) {
                         findViewById(R.id.playbackRelativeLayout).setVisibility(View.VISIBLE);
@@ -426,7 +426,7 @@ public class MainActivity extends ActionBarActivity implements
         whereCategory = MusicCategories.GENRES;
 
         where = new String[3];
-        where[0] = MediaStore.Audio.Media.IS_MUSIC  + "=?";                 // Where text
+        where[0] = MediaStore.Audio.Media.IS_MUSIC + "=?";                 // Where text
         where[1] = "1";                                                     // isMusic indicator
         where[2] = ((GenreListViewItem) object).getId();                    // GenreId
 
@@ -435,26 +435,28 @@ public class MainActivity extends ActionBarActivity implements
         setTitle(((GenreListViewItem) object).getName());
     }
 
-    public void handlePlaylistOnClick(Object object){
+    public void handlePlaylistOnClick(Object object) {
         PlaylistManager parser = new PlaylistManager(((PlaylistListViewItem) object).getPath(), this);
         ArrayList<String> songs = parser.getSongs();
-        if(songs.size() == 0){
-            Toast.makeText(this,getResources().getString(R.string.playlist_error), Toast.LENGTH_SHORT).show();
-        }
-        else {
+        if (songs.size() == 0) {
+            Toast.makeText(this, getResources().getString(R.string.playlist_error), Toast.LENGTH_SHORT).show();
+        } else {
 
             whereCategory = MusicCategories.PLAYLISTS;
 
-            where = new String[1];
-            String songList = "";
-            for(String s : songs){
-                songList = songList + "'" + s + "', ";
-            }
-            songList = songList.substring(0,songList.length() - 2);
-            where[0] = MediaStore.Audio.Media.DATA + " in (" + songList + ")";
+            where = new String[]{getPlaylistWhere(songs)};
 
             handleClick(where, SongFragment.class.getName(), "SONGS");
         }
+    }
+
+    private String getPlaylistWhere(ArrayList<String> songs) {
+        String songList = "";
+        for (String s : songs) {
+            songList = songList + "'" + s + "', ";
+        }
+        songList = songList.substring(0, songList.length() - 2);
+        return MediaStore.Audio.Media.DATA + " in (" + songList + ")";
     }
 
     @Override
@@ -463,10 +465,9 @@ public class MainActivity extends ActionBarActivity implements
             actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
             drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
         }
-        if(isPlaybackShowing()){
+        if (isPlaybackShowing()) {
             togglePlayback(null);
-        }
-        else {
+        } else {
             if (getFragmentManager().getBackStackEntryCount() != 0) {
                 setTitle(getFragmentManager().getBackStackEntryAt(0).getName());
                 getFragmentManager().popBackStack();
@@ -482,81 +483,81 @@ public class MainActivity extends ActionBarActivity implements
         }
     }
 
-    public String[] getWhere(){
+    public String[] getWhere() {
         return where;
     }
 
-    public void handleSkip(View view){
+    public void handleSkip(View view) {
         manager.skip();
         Log.d(GlobalFunctions.TAG, "song skipped");
     }
 
 
-    public void handleBack(View view){
+    public void handleBack(View view) {
         manager.back();
     }
 
-    public void togglePlay(View view){
-        if(manager.isInValidState() && manager.isPlaying())
+    public void togglePlay(View view) {
+        if (manager.isInValidState() && manager.isPlaying())
             manager.pause();
         else
             manager.play();
     }
 
-    public SongListViewItem getNowPlaying(){
-        if(manager != null){
+    public SongListViewItem getNowPlaying() {
+        if (manager != null) {
             return manager.getNowPlaying();
-        }
-        else{
+        } else {
             return null;
         }
     }
 
-    public boolean getNowPlayingBoolean(){
-        if(manager != null){
+    public boolean getNowPlayingBoolean() {
+        if (manager != null) {
             return manager.getNowPlaying() != null && manager.isInValidState();
-        }
-        else{
+        } else {
             return false;
         }
     }
 
-    public void loadNewSongInfo(SongListViewItem newSong){
-        if(isPlaybackShowing()){
+    public void loadNewSongInfo(SongListViewItem newSong) {
+        if (isPlaybackShowing()) {
             ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).setInfo(newSong);
         }
     }
 
-    public boolean isPlaybackShowing(){
+    public boolean isPlaybackShowing() {
         return findViewById(R.id.playImageButton) != null;
     }
-    public int getDuration(){
-       return manager.getDuration();
+
+    public int getDuration() {
+        return manager.getDuration();
     }
-    public int getCurrentPosition(){
+
+    public int getCurrentPosition() {
         return manager.getCurrentPosition();
     }
 
-    public void seekTo(int position){
+    public void seekTo(int position) {
         manager.seekTo(position);
     }
 
-    public MusicCategories getWhereCategory(){
+    public MusicCategories getWhereCategory() {
         return whereCategory;
     }
 
-    public void showNowPlaying(View view){
+    public void showNowPlaying(View view) {
         Intent intent = new Intent(this, NowPlayingActivity.class);
         startActivityForResult(intent, NowPlayingActivity.NOW_PLAYING);
     }
 
-    public boolean isPaused(){
+    public boolean isPaused() {
         return !manager.isPlaying();
     }
 
-    public void onFinish(){
+    public void onFinish() {
         // Hid the Playbackfragment
-        if(isPlaybackShowing()){
+        if (isPlaybackShowing()) {
             ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).finished();
         }
 
@@ -566,10 +567,10 @@ public class MainActivity extends ActionBarActivity implements
     protected void onDestroy() {
         super.onDestroy();
         // If the service is connected, end the music player and unbind
-        if(connection != null && service.isBinderAlive()) {
+        if (connection != null && service.isBinderAlive()) {
 
             // Destroys the manager if manager is not already destoryed
-            if(manager.isInValidState()){
+            if (manager.isInValidState()) {
                 manager.endPlayback();
             }
         }
@@ -578,8 +579,8 @@ public class MainActivity extends ActionBarActivity implements
     /*
          * interface implement method
          */
-    public void songPlay(){
-        if(isPlaybackShowing()) {
+    public void songPlay() {
+        if (isPlaybackShowing()) {
             findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_pause);
             ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).play();
         }
@@ -588,8 +589,8 @@ public class MainActivity extends ActionBarActivity implements
     /*
      * interface implement method
      */
-    public void songPause(){
-        if(isPlaybackShowing()) {
+    public void songPause() {
+        if (isPlaybackShowing()) {
             findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_play);
             ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).pause();
         }
@@ -598,16 +599,15 @@ public class MainActivity extends ActionBarActivity implements
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == NowPlayingActivity.NOW_PLAYING){
+        if (requestCode == NowPlayingActivity.NOW_PLAYING) {
             manager.setListener(this);
-            if(resultCode == RESULT_OK){
+            if (resultCode == RESULT_OK) {
                 SongListViewItem item = manager.getQueue().get(data.getExtras().getInt(NowPlayingActivity.POSITION));
                 togglePlayback(null);
-                if(data.getExtras().getBoolean(NowPlayingActivity.ALBUM_FRAGMENT)){
+                if (data.getExtras().getBoolean(NowPlayingActivity.ALBUM_FRAGMENT)) {
                     handleAlbumOnClick(new AlbumListViewItem(item.getAlbumID(),
                             item.getArtistName(), item.getTitle(), null, item.getArtistID()));
-                }
-                else{
+                } else {
                     handleArtistOnClick(new ArtistListViewItem(item.getArtistName(), null, item.getArtistID()));
                 }
                 manager.setListener(this);
@@ -616,72 +616,81 @@ public class MainActivity extends ActionBarActivity implements
 
     }
 
-    private ArrayList<SongListViewItem> menuGetSongs(View view){
+    private ArrayList<SongListViewItem> menuGetSongs(View view) {
 
         int position = (int) view.getTag();
+        Fragment fragment = getFragmentManager().findFragmentById(R.id.fragment_holder);
+        int id;
+        if (fragment instanceof AlbumFragment)
+            id = R.id.musicItemAlbumListView;
+        else if (fragment instanceof ArtistFragment)
+            id = R.id.musicItemArtistListView;
+        else if (fragment instanceof GenreFragment)
+            id = R.id.musicItemGenreListView;
+        else if (fragment instanceof SongFragment)
+            id = R.id.musicItemSongListView;
+        else
+            id = R.id.musicItemPlaylistListView;
 
-        Object item = ((ListView)findViewById(R.id.musicItemListView)).getAdapter().getItem(position);
+        Object item = ((ListView) findViewById(id)).getAdapter().getItem(position);
 
         ArrayList<SongListViewItem> newSongs = new ArrayList<SongListViewItem>();
 
-        if(item instanceof SongListViewItem){
-            newSongs.add((SongListViewItem) item);
-        }
-        else if(item instanceof ArtistListViewItem){
+        if (item instanceof ArtistListViewItem)
             newSongs = getSongsFromArtist((ArtistListViewItem) item);
-        }
-        else if(item instanceof AlbumListViewItem){
+        else if (item instanceof AlbumListViewItem)
             newSongs = getSongsFromAlbum((AlbumListViewItem) item);
-        }
-        else if(item instanceof GenreListViewItem){
+        else if (item instanceof GenreListViewItem)
             newSongs = getSongsFromGenre((GenreListViewItem) item);
-        }
+        else if (item instanceof SongListViewItem)
+            newSongs.add((SongListViewItem) item);
+        else
+            newSongs = getSongsFromPlaylist((PlaylistListViewItem) item);
+
 
         return newSongs;
     }
 
-    private void menuPlay(View view){
+    private void menuPlay(View view) {
 
         // Get the correct songs that item relates to
         ArrayList<SongListViewItem> newSongs = menuGetSongs(view);
 
         // Release the old manager and start the new one
-        if(manager != null) {
+        if (manager != null) {
             manager.endPlayback();
         }
         handleSongOnClick(newSongs, 0);
     }
 
-    private void menuPlayNext(View view){
+    private void menuPlayNext(View view) {
         // Get the correct songs that item relates to
         ArrayList<SongListViewItem> newSongs = menuGetSongs(view);
 
-        if(manager != null){
+        if (manager != null) {
             manager.playNext(newSongs);
-        }
-        else{
+        } else {
             handleSongOnClick(newSongs, 0);
         }
     }
 
-    private void menuAddToQueue(View view){
+    private void menuAddToQueue(View view) {
         // Get the correct songs that item relates to
         ArrayList<SongListViewItem> newSongs = menuGetSongs(view);
 
-        if(manager != null){
+        if (manager != null) {
             manager.addToQueue(newSongs);
-        }
-        else{
+        } else {
             handleSongOnClick(newSongs, 0);
         }
     }
 
-    private void menuAddToPlaylist(final View view){
+    private void menuAddToPlaylist(final View view) {
         final ArrayList<PlaylistListViewItem> playlists = PlaylistFragment.getPlaylists(null, null, null, getContentResolver());
         CharSequence[] names = new CharSequence[playlists.size() + 1];
         names[0] = getResources().getString(R.string.playlist_create_new);
 
-        for(int i = 1; i < playlists.size() + 1; i++){
+        for (int i = 1; i < playlists.size() + 1; i++) {
             names[i] = playlists.get(i - 1).toString();
         }
 
@@ -721,7 +730,7 @@ public class MainActivity extends ActionBarActivity implements
         dialog.create().show();
     }
 
-    private void addSongsToPlaylist(String playlistName, View view){
+    private void addSongsToPlaylist(String playlistName, View view) {
         PlaylistManager manager = new PlaylistManager(playlistName, this);
         ArrayList<SongListViewItem> songs = menuGetSongs(view);
         String toastMessage;
@@ -733,30 +742,28 @@ public class MainActivity extends ActionBarActivity implements
         Toast.makeText(MainActivity.this, toastMessage, Toast.LENGTH_SHORT).show();
     }
 
-    private void menuDelete(View view){
+    private void menuDelete(View view) {
         // Get the position of the item click (position in parents parent)
         int position = ((ListView) view.getParent().getParent()).getPositionForView(view);
 
         // Get the data that created the view
         Object item = ((ListView) view.getParent().getParent()).getAdapter().getItem(position);
 
-        if(item instanceof SongListViewItem){
+        if (item instanceof SongListViewItem) {
             (new File(((SongListViewItem) item).getDataLocation())).delete();
             Toast.makeText(this, getResources().getString(R.string.song_removed), Toast.LENGTH_SHORT).show();
-        }
-        else if(item instanceof PlaylistListViewItem){
+        } else if (item instanceof PlaylistListViewItem) {
             (new File(((PlaylistListViewItem) item).getPath())).delete();
             Toast.makeText(this, getResources().getString(R.string.playlist_removed), Toast.LENGTH_SHORT).show();
-        }
-        else{
+        } else {
             Toast.makeText(this, getResources().getString(R.string.cannot_delete), Toast.LENGTH_SHORT).show();
         }
     }
 
-    private ArrayList<SongListViewItem> getSongsFromArtist(ArtistListViewItem artist){
+    private ArrayList<SongListViewItem> getSongsFromArtist(ArtistListViewItem artist) {
 
         // Select albums where artistID = artistID and isMusic = 1
-        String where = MediaStore.Audio.Media.ARTIST_ID + " =? AND " + MediaStore.Audio.Media.IS_MUSIC  + "=?";
+        String where = MediaStore.Audio.Media.ARTIST_ID + " =? AND " + MediaStore.Audio.Media.IS_MUSIC + "=?";
         String[] whereParams = new String[2];
         whereParams[0] = artist.getArtistID();
         whereParams[1] = "1";
@@ -770,11 +777,11 @@ public class MainActivity extends ActionBarActivity implements
      * @param   album       An AlbumListViewItem containing the information to identify the album
      * @return  ArrayList   An ArrayList of all songs contained on the album
      */
-    private ArrayList<SongListViewItem> getSongsFromAlbum(AlbumListViewItem album){
+    private ArrayList<SongListViewItem> getSongsFromAlbum(AlbumListViewItem album) {
 
         String where = MediaStore.Audio.Media.IS_MUSIC + " = ?";
-        where = where + " AND " +  MediaStore.Audio.Media.ARTIST_ID + "=?";
-        where = where + " AND (" + MediaStore.Audio.Media.ALBUM  + " = ?";
+        where = where + " AND " + MediaStore.Audio.Media.ARTIST_ID + "=?";
+        where = where + " AND (" + MediaStore.Audio.Media.ALBUM + " = ?";
         where = where + " OR " + MediaStore.Audio.Media.ALBUM_ID + " = ? )";
         String[] whereParams = new String[4];
         whereParams[0] = "1";                                  // isMusic indicator
@@ -791,9 +798,9 @@ public class MainActivity extends ActionBarActivity implements
      * @param genre A GenreListViewItem that contains the genreId to select songs from
      * @return      An ArrayList<SongListViewItem> containing all songs from the genre
      */
-    private ArrayList<SongListViewItem> getSongsFromGenre(GenreListViewItem genre){
+    private ArrayList<SongListViewItem> getSongsFromGenre(GenreListViewItem genre) {
 
-        String where = MediaStore.Audio.Media.IS_MUSIC  + "=?"; // Where text
+        String where = MediaStore.Audio.Media.IS_MUSIC + "=?"; // Where text
         String[] whereParams = new String[2];
         whereParams[0] = "1";                                   // isMusic indicator
         whereParams[1] = genre.getId();                         // GenreId
@@ -801,27 +808,41 @@ public class MainActivity extends ActionBarActivity implements
         return SongFragment.getSongs(where, whereParams, MusicCategories.GENRES, this, false);
     }
 
-    public Context getContext(){
+    private ArrayList<SongListViewItem> getSongsFromPlaylist(PlaylistListViewItem playlist) {
+        PlaylistManager parser = new PlaylistManager(playlist.getPath(), this);
+        ArrayList<String> songs = parser.getSongs();
+        if (songs.size() == 0) {
+            Toast.makeText(this, getResources().getString(R.string.playlist_error), Toast.LENGTH_SHORT).show();
+            return new ArrayList<SongListViewItem>();
+        } else {
+            String where = getPlaylistWhere(songs);
+            return SongFragment.getSongs(where, null, MusicCategories.PLAYLISTS, this, false);
+        }
+
+
+    }
+
+    public Context getContext() {
         return getApplicationContext();
     }
 
-    public String getApplicationName(){
+    public String getApplicationName() {
         return getPackageName();
     }
 
-    public void destroy(){
-        if(isPlaybackShowing()){
+    public void destroy() {
+        if (isPlaybackShowing()) {
             togglePlayback(null);
         }
         findViewById(R.id.playbackRelativeLayout).setVisibility(View.GONE);
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
 
         // If endPlayback was called when the app was closed, call endPlayback when reopened
-        if(popOnResume){
+        if (popOnResume) {
             destroy();
         }
     }
@@ -832,33 +853,32 @@ public class MainActivity extends ActionBarActivity implements
      *
      *  @param view,    The view that initiated the method call
      */
-    public void toggleShuffle(View view){
+    public void toggleShuffle(View view) {
 
         // Change the color of the shuffle button
-        if(manager.isShuffle()) {
+        if (manager.isShuffle()) {
             findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP);
-        }
-        else{
+        } else {
             findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
         }
         manager.shuffle();
     }
 
 
-    public boolean isShuffle(){
+    public boolean isShuffle() {
         return manager.isShuffle();
     }
 
-    public void toggleRepeat(View view){
+    public void toggleRepeat(View view) {
         setUpRepeatIcon(manager.toggleRepeat());
     }
 
-    public void setUpRepeatIcon(MediaPlayerManager.Repeat repeat){
-        if(repeat == null){
+    public void setUpRepeatIcon(MediaPlayerManager.Repeat repeat) {
+        if (repeat == null) {
             repeat = manager.getRepeat();
         }
         View view = findViewById(R.id.repeatImageButton);
-        switch (repeat){
+        switch (repeat) {
             case NONE:
                 view.setBackgroundResource(R.drawable.ic_action_repeat);
                 view.getBackground().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP);
