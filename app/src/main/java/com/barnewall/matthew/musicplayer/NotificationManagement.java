@@ -6,9 +6,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.support.v4.app.NotificationCompat;
-import android.widget.RemoteViews;
+import android.support.v7.app.NotificationCompat;
 
 /**
  * Created by Matthew on 4/24/2016.
@@ -16,74 +14,50 @@ import android.widget.RemoteViews;
 public class NotificationManagement {
     private static final int NOTIFICATION_ID = 253;
     public static final String EXIT_MUSIC = "EXIT_MUSIC";
-    public static final String PAUSE_MUSIC = "PAUSE_MUSIC";
+    public static final String TOGGLE_PLAY_MUSIC = "TOGGLE_PLAY_MUSIC";
     public static final String BACK_MUSIC = "mbarnewall_BACK_MUSIC";
     public static final String NEXT_MUSIC = "mbarnewall_NEXT_MUSIC";
 
     public static void createNotification(Context context, String packageName, String songName,
-                                          String artistName, Bitmap artwork, boolean playing){;
-        Notification notification = buildNotification(context,packageName,songName,artistName,artwork, playing);
+                                          String artistName, Bitmap artwork, boolean playing) {
+        Notification notification = buildNotification(context, packageName, songName, artistName, artwork, playing);
 
-        ((NotificationManager)context.getSystemService(context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, notification);
+        ((NotificationManager) context.getSystemService(context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, notification);
     }
 
     public static Notification buildNotification(Context context, String packageName, String songName,
-                                                 String artistName, Bitmap artwork, boolean playing){
+                                                 String artistName, Bitmap artwork, boolean isPlaying) {
 
         int icon = R.drawable.ic_launcher;
-        long when = System.currentTimeMillis();
-        Notification notification = new Notification.Builder(context)
-                .setSmallIcon(icon)
-                .setWhen(when)
-                .build();
 
-        RemoteViews contentView = new RemoteViews(packageName, R.layout.play_music_notification);
-        contentView.setImageViewResource(R.id.image, R.drawable.no_album_art);
-        contentView.setTextViewText(R.id.notificationSongTextView, songName);
-        contentView.setTextViewText(R.id.notificationArtistTextView, artistName);
-        contentView.setImageViewBitmap(R.id.notificationImageView, artwork);
-
-        contentView.setInt(R.id.notificationPauseButton, "setBackgroundColor", android.R.color.black);
-        if(playing){
-            contentView.setImageViewBitmap(R.id.notificationPauseButton, ((BitmapDrawable) context.getResources().getDrawable(R.drawable.ic_action_pause)).getBitmap());
-        }
-        else{
-            contentView.setImageViewBitmap(R.id.notificationPauseButton, ((BitmapDrawable) context.getResources().getDrawable(R.drawable.ic_action_play)).getBitmap());
-
-        }
-
-        Intent exitIntent = new Intent(EXIT_MUSIC);
-        PendingIntent exitPendingIntent = PendingIntent.getBroadcast(context, 0, exitIntent, 0);
-        contentView.setOnClickPendingIntent(R.id.notificationExitButton, exitPendingIntent);
-
-        Intent pauseIntent = new Intent(PAUSE_MUSIC);
-        PendingIntent pausePendingIntent = PendingIntent.getBroadcast(context, 0, pauseIntent, 0);
-        contentView.setOnClickPendingIntent(R.id.notificationPauseButton, pausePendingIntent);
-
-        Intent backIntent = new Intent(BACK_MUSIC);
-        PendingIntent backPendingIntent = PendingIntent.getBroadcast(context, 0, backIntent, 0);
-        contentView.setOnClickPendingIntent(R.id.notificationBackButton, backPendingIntent);
-
-        Intent nextIntent = new Intent(NEXT_MUSIC);
-        PendingIntent nextPendingIntent = PendingIntent.getBroadcast(context,0,nextIntent,0);
-        contentView.setOnClickPendingIntent(R.id.notificationNextButton, nextPendingIntent);
-
-        notification.bigContentView = contentView;
-
+        PendingIntent prevPendingIntent = PendingIntent.getBroadcast(context, 0, new Intent(BACK_MUSIC), 0);
+        PendingIntent playPausePendingIntent = PendingIntent.getBroadcast(context, 0, new Intent(TOGGLE_PLAY_MUSIC), 0);
+        PendingIntent nextPendingIntent = PendingIntent.getBroadcast(context, 0, new Intent(NEXT_MUSIC), 0);
 
         Intent notificationIntent = new Intent(context, MainActivity.class);
         notificationIntent.setAction(Intent.ACTION_MAIN);
         notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
-        notification.contentIntent = contentIntent;
 
-        notification.flags |= Notification.FLAG_NO_CLEAR;
-        notification.priority = Notification.PRIORITY_MAX;
-        return notification;
+        return new NotificationCompat.Builder(context)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setSmallIcon(icon)
+                .addAction(R.drawable.ic_action_previous, "", prevPendingIntent)
+                .addAction(isPlaying ? R.drawable.ic_action_pause : R.drawable.ic_action_play, "", playPausePendingIntent)
+                .addAction(R.drawable.ic_action_next, "", nextPendingIntent)
+                .setContentTitle(songName)
+                .setContentText(artistName)
+                .setLargeIcon(artwork)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setContentIntent(contentIntent)
+                .setOngoing(true)
+                .setStyle(new NotificationCompat.MediaStyle()
+                .setShowActionsInCompactView(1))
+                .build();
     }
 
-    public static void removeNotification(Context context){
-        ((NotificationManager)context.getSystemService(context.NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID);
+    public static void removeNotification(Context context) {
+        ((NotificationManager) context.getSystemService(context.NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID);
     }
 }
