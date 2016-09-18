@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.IBinder;
-import android.util.Log;
 
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
@@ -33,7 +32,7 @@ public class MusicPlayerService extends Service {
                 manager.endPlayback();
                 NotificationManagement.removeNotification(getApplicationContext());
             }
-            else if(intent.getAction().equals(NotificationManagement.PAUSE_MUSIC)){
+            else if(intent.getAction().equals(NotificationManagement.TOGGLE_PLAY_MUSIC)){
                 if(manager.isPlaying()) {
                     manager.pause();
                 }
@@ -79,7 +78,7 @@ public class MusicPlayerService extends Service {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(UPDATE_QUEUE);
         intentFilter.addAction(NotificationManagement.EXIT_MUSIC);
-        intentFilter.addAction(NotificationManagement.PAUSE_MUSIC);
+        intentFilter.addAction(NotificationManagement.TOGGLE_PLAY_MUSIC);
         intentFilter.addAction(NotificationManagement.BACK_MUSIC);
         intentFilter.addAction(NotificationManagement.NEXT_MUSIC);
         registerReceiver(receiver, intentFilter);

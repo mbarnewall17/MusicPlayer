@@ -68,13 +68,12 @@ public class MediaPlayerManager {
         @Override
         public void onCompletion(MediaPlayer mp) {
 
-            if (repeat == Repeat.REPEAT_SONG) {
+            if (repeat == Repeat.REPEAT_SONG)
                 nowPlayingPosition--;
-            }
 
-            if (nowPlayingPosition != MediaPlayerManager.this.queue.size() - 1) {
+            if (nowPlayingPosition != MediaPlayerManager.this.queue.size() - 1)
                 playNextSong();
-            } else {
+            else {
                 if (repeat == Repeat.REPEAT_ALL) {
                     nowPlayingPosition = -1;
                     playNextSong();
@@ -93,7 +92,7 @@ public class MediaPlayerManager {
                     pause();
                     break;
                 case AudioManager.AUDIOFOCUS_GAIN:
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,volume,0);
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
                     play();
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS:
@@ -101,7 +100,7 @@ public class MediaPlayerManager {
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                     volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,(int)(volume * .5), 0);
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, (int) (volume * .5), 0);
                     break;
             }
         }
@@ -122,9 +121,8 @@ public class MediaPlayerManager {
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setOnCompletionListener(onCompletionListener);
             loadSong(nowPlaying);
-        } else if (back) {
+        } else if (back)
             loadSong(nowPlaying);
-        }
 
         if (requestAudioFocus(audioManager, onAudioFocusChangeListener)) {
             mediaPlayer.start();
@@ -134,7 +132,7 @@ public class MediaPlayerManager {
         }
     }
 
-    public boolean requestAudioFocus(AudioManager manager, AudioManager.OnAudioFocusChangeListener listener){
+    public boolean requestAudioFocus(AudioManager manager, AudioManager.OnAudioFocusChangeListener listener) {
         int result = manager.requestAudioFocus(listener,
                 AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
@@ -344,7 +342,7 @@ public class MediaPlayerManager {
         nowPlayingPosition = 0;
         isInValidState = false;
 
-        if(listener != null) {
+        if (listener != null) {
             listener.onFinish();
             listener.destroy();
         }
@@ -469,7 +467,7 @@ public class MediaPlayerManager {
         return repeat;
     }
 
-    public void launchNotification(boolean isPlaying){
+    public void launchNotification(boolean isPlaying) {
         NotificationManagement.createNotification(listener.getContext(),
                 listener.getApplicationName(),
                 nowPlaying.getTitle(),

@@ -16,10 +16,12 @@ import android.app.Fragment;
 import android.os.Environment;
 import android.os.IBinder;
 import android.provider.MediaStore;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -46,7 +48,6 @@ import com.barnewall.matthew.musicplayer.Song.SongFragment;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
 import java.io.File;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity implements
@@ -137,7 +138,7 @@ public class MainActivity extends ActionBarActivity implements
 
         // Set the list's click listener
         drawerListView.setOnItemClickListener(new DrawerItemClickListener());
-        actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.drawable.ic_drawer, R.string.app_name, R.string.app_name) {
+        actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.app_name, R.string.app_name) {
 
             // Sets the title
             public void onDrawerClosed(View view) {
@@ -157,7 +158,7 @@ public class MainActivity extends ActionBarActivity implements
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
         };
-        drawerLayout.setDrawerListener(actionBarDrawerToggle);
+        drawerLayout.addDrawerListener(actionBarDrawerToggle);
     }
 
     // Item click listener for the navigation drawer
@@ -505,25 +506,23 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public SongListViewItem getNowPlaying() {
-        if (manager != null) {
+        if (manager != null)
             return manager.getNowPlaying();
-        } else {
+        else
             return null;
-        }
     }
 
     public boolean getNowPlayingBoolean() {
-        if (manager != null) {
+        if (manager != null)
             return manager.getNowPlaying() != null && manager.isInValidState();
-        } else {
+        else
             return false;
-        }
+
     }
 
     public void loadNewSongInfo(SongListViewItem newSong) {
-        if (isPlaybackShowing()) {
+        if (isPlaybackShowing())
             ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).setInfo(newSong);
-        }
     }
 
     public boolean isPlaybackShowing() {
@@ -556,11 +555,8 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public void onFinish() {
-        // Hid the Playbackfragment
-        if (isPlaybackShowing()) {
+        if (isPlaybackShowing())
             ((PlaybackFragment) getFragmentManager().findFragmentById(R.id.fragment_holder)).finished();
-        }
-
     }
 
     @Override
@@ -569,16 +565,13 @@ public class MainActivity extends ActionBarActivity implements
         // If the service is connected, end the music player and unbind
         if (connection != null && service.isBinderAlive()) {
 
-            // Destroys the manager if manager is not already destoryed
-            if (manager.isInValidState()) {
+            // Destroys the manager if manager is not already destroyed
+            if (manager.isInValidState())
                 manager.endPlayback();
-            }
+
         }
     }
 
-    /*
-         * interface implement method
-         */
     public void songPlay() {
         if (isPlaybackShowing()) {
             findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_pause);
@@ -586,9 +579,6 @@ public class MainActivity extends ActionBarActivity implements
         }
     }
 
-    /*
-     * interface implement method
-     */
     public void songPause() {
         if (isPlaybackShowing()) {
             findViewById(R.id.playImageButton).setBackgroundResource(R.drawable.ic_action_play);
@@ -607,13 +597,12 @@ public class MainActivity extends ActionBarActivity implements
                 if (data.getExtras().getBoolean(NowPlayingActivity.ALBUM_FRAGMENT)) {
                     handleAlbumOnClick(new AlbumListViewItem(item.getAlbumID(),
                             item.getArtistName(), item.getTitle(), null, item.getArtistID()));
-                } else {
+                } else
                     handleArtistOnClick(new ArtistListViewItem(item.getArtistName(), null, item.getArtistID()));
-                }
+
                 manager.setListener(this);
             }
         }
-
     }
 
     private ArrayList<SongListViewItem> menuGetSongs(View view) {
@@ -652,14 +641,11 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     private void menuPlay(View view) {
-
-        // Get the correct songs that item relates to
         ArrayList<SongListViewItem> newSongs = menuGetSongs(view);
 
-        // Release the old manager and start the new one
-        if (manager != null) {
+        if (manager != null)
             manager.endPlayback();
-        }
+
         handleSongOnClick(newSongs, 0);
     }
 
@@ -667,11 +653,10 @@ public class MainActivity extends ActionBarActivity implements
         // Get the correct songs that item relates to
         ArrayList<SongListViewItem> newSongs = menuGetSongs(view);
 
-        if (manager != null) {
+        if (manager != null)
             manager.playNext(newSongs);
-        } else {
+        else
             handleSongOnClick(newSongs, 0);
-        }
     }
 
     private void menuAddToQueue(View view) {
@@ -755,9 +740,9 @@ public class MainActivity extends ActionBarActivity implements
         } else if (item instanceof PlaylistListViewItem) {
             (new File(((PlaylistListViewItem) item).getPath())).delete();
             Toast.makeText(this, getResources().getString(R.string.playlist_removed), Toast.LENGTH_SHORT).show();
-        } else {
+        } else
             Toast.makeText(this, getResources().getString(R.string.cannot_delete), Toast.LENGTH_SHORT).show();
-        }
+
     }
 
     private ArrayList<SongListViewItem> getSongsFromArtist(ArtistListViewItem artist) {
@@ -811,6 +796,7 @@ public class MainActivity extends ActionBarActivity implements
     private ArrayList<SongListViewItem> getSongsFromPlaylist(PlaylistListViewItem playlist) {
         PlaylistManager parser = new PlaylistManager(playlist.getPath(), this);
         ArrayList<String> songs = parser.getSongs();
+
         if (songs.size() == 0) {
             Toast.makeText(this, getResources().getString(R.string.playlist_error), Toast.LENGTH_SHORT).show();
             return new ArrayList<SongListViewItem>();
@@ -831,9 +817,9 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public void destroy() {
-        if (isPlaybackShowing()) {
+        if (isPlaybackShowing())
             togglePlayback(null);
-        }
+
         findViewById(R.id.playbackRelativeLayout).setVisibility(View.GONE);
     }
 
@@ -842,9 +828,8 @@ public class MainActivity extends ActionBarActivity implements
         super.onResume();
 
         // If endPlayback was called when the app was closed, call endPlayback when reopened
-        if (popOnResume) {
+        if (popOnResume)
             destroy();
-        }
     }
 
     /*
@@ -854,13 +839,11 @@ public class MainActivity extends ActionBarActivity implements
      *  @param view,    The view that initiated the method call
      */
     public void toggleShuffle(View view) {
-
-        // Change the color of the shuffle button
-        if (manager.isShuffle()) {
+        if (manager.isShuffle())
             findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP);
-        } else {
+        else
             findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
-        }
+
         manager.shuffle();
     }
 
@@ -874,24 +857,12 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public void setUpRepeatIcon(MediaPlayerManager.Repeat repeat) {
-        if (repeat == null) {
+        if (repeat == null)
             repeat = manager.getRepeat();
-        }
+
         View view = findViewById(R.id.repeatImageButton);
-        switch (repeat) {
-            case NONE:
-                view.setBackgroundResource(R.drawable.ic_action_repeat);
-                view.getBackground().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP);
-                break;
-            case REPEAT_SONG:
-                view.setBackgroundResource(R.drawable.ic_action_repeat);
-                view.getBackground().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
-                break;
-            case REPEAT_ALL:
-                view.setBackgroundResource(R.drawable.ic_action_repeat_all);
-                view.getBackground().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
-                break;
-        }
+        view.setBackgroundResource(repeat == MediaPlayerManager.Repeat.REPEAT_ALL ? R.drawable.ic_action_repeat_all : R.drawable.ic_action_repeat);
+        view.getBackground().setColorFilter(getResources().getColor(repeat == MediaPlayerManager.Repeat.NONE ? R.color.white : R.color.black), PorterDuff.Mode.SRC_ATOP);
     }
 
     public boolean isInValidState() {
