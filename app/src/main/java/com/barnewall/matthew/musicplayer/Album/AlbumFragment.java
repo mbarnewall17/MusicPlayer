@@ -109,7 +109,8 @@ public class AlbumFragment extends MusicFragment {
 
         removeDuplicates(albums);
 
-        Collections.sort(albums, new Comparator<AlbumListViewItem>() {
+        if (category == MainActivity.MusicCategories.ARTISTS)
+            Collections.sort(albums, new Comparator<AlbumListViewItem>() {
             @Override
             public int compare(AlbumListViewItem first, AlbumListViewItem second) {
                 if(first == null && second == null){
