@@ -5,9 +5,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioManager;
 import android.os.Binder;
 import android.os.IBinder;
 
+import com.barnewall.matthew.musicplayer.BroadcastReceivers.HeadsetUnpluggedReceiver;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
 import java.util.ArrayList;
@@ -48,6 +50,8 @@ public class MusicPlayerService extends Service {
         }
     };
 
+    private HeadsetUnpluggedReceiver headsetUnpluggedReceiver;
+
     public MusicPlayerService() {}
 
     @Override
@@ -83,11 +87,14 @@ public class MusicPlayerService extends Service {
         intentFilter.addAction(NotificationManagement.NEXT_MUSIC);
         registerReceiver(receiver, intentFilter);
 
+        headsetUnpluggedReceiver = new HeadsetUnpluggedReceiver();
+        registerReceiver(headsetUnpluggedReceiver, new IntentFilter(AudioManager.ACTION_HEADSET_PLUG));
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(receiver);
+        unregisterReceiver(headsetUnpluggedReceiver);
     }
 }

@@ -1,6 +1,7 @@
 package com.barnewall.matthew.musicplayer;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.ContentUris;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -78,5 +79,16 @@ public class GlobalFunctions {
             }
         }
         return null;
+    }
+
+    //http://stackoverflow.com/questions/600207/how-to-check-if-a-service-is-running-on-android
+    public static boolean isServiceRunning(Context context, Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
