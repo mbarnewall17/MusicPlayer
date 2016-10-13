@@ -16,10 +16,12 @@ import android.app.Fragment;
 import android.os.Environment;
 import android.os.IBinder;
 import android.provider.MediaStore;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -487,20 +489,20 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public void handleSkip(View view) {
-        manager.onSkipToNext();
+        manager.skip();
         Log.d(GlobalFunctions.TAG, "song skipped");
     }
 
 
     public void handleBack(View view) {
-        manager.onSkipToPrevious();
+        manager.back();
     }
 
     public void togglePlay(View view) {
         if (manager.isInValidState() && manager.isPlaying())
-            manager.onPause();
+            manager.pause();
         else
-            manager.onPlay();
+            manager.play();
     }
 
     public SongListViewItem getNowPlaying() {
@@ -536,7 +538,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public void seekTo(int position) {
-        manager.onSeekTo(position);
+        manager.seekTo(position);
     }
 
     public MusicCategories getWhereCategory() {
@@ -565,7 +567,7 @@ public class MainActivity extends ActionBarActivity implements
 
             // Destroys the manager if manager is not already destroyed
             if (manager.isInValidState())
-                manager.onStop();
+                manager.endPlayback();
 
         }
     }
@@ -642,7 +644,7 @@ public class MainActivity extends ActionBarActivity implements
         ArrayList<SongListViewItem> newSongs = menuGetSongs(view);
 
         if (manager != null)
-            manager.onStop();
+            manager.endPlayback();
 
         handleSongOnClick(newSongs, 0);
     }
@@ -825,7 +827,7 @@ public class MainActivity extends ActionBarActivity implements
     public void onResume() {
         super.onResume();
 
-        // If onStop was called when the app was closed, call onStop when reopened
+        // If endPlayback was called when the app was closed, call endPlayback when reopened
         if (popOnResume)
             destroy();
     }

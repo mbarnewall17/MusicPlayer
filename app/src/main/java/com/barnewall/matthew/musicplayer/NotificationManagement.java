@@ -6,7 +6,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v7.app.NotificationCompat;
 
 /**
@@ -53,7 +52,7 @@ public class NotificationManagement {
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setContentIntent(contentIntent)
                 .setOngoing(true)
-                .setStyle(new NotificationCompat.MediaStyle().setMediaSession(MediaPlayerManager.mediaSession.getSessionToken())
+                .setStyle(new NotificationCompat.MediaStyle()
                 .setShowActionsInCompactView(1))
                 .build();
     }

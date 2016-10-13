@@ -1,29 +1,22 @@
 package com.barnewall.matthew.musicplayer;
 
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Handler;
-import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaSessionCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.barnewall.matthew.musicplayer.BroadcastReceivers.RemoteControlReceiver;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.TooManyListenersException;
 
 /**
  * Created by Matthew on 8/18/2015.
  */
-public class MediaPlayerManager extends MediaSessionCompat.Callback{
-    public static MediaSessionCompat mediaSession;
-
+public class MediaPlayerManager {
     private MediaPlayer mediaPlayer;
     private ArrayList<SongListViewItem> queue;
     private SongListViewItem nowPlaying;
@@ -39,7 +32,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
     private AudioManager audioManager;
     private int volume;
 
-    private static final int BACK_DELAY = 1000;
+    private static final int BACK_DELAY = 500;
 
     public enum Repeat {
         NONE, REPEAT_SONG, REPEAT_ALL
@@ -62,34 +55,9 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
 
         mediaPlayer.setOnCompletionListener(onCompletionListener);
 
-        setUpMediaSession();
-
         nowPlaying = queue.get(nowPlayingPosition);
         loadSong(nowPlaying);
-        onPlay();
-    }
-
-    private void setUpMediaSession(){
-        ComponentName mediaButtonReceiver = new ComponentName(listener.getContext(), RemoteControlReceiver.class);
-        mediaSession = new MediaSessionCompat(listener.getContext(), GlobalFunctions.TAG, mediaButtonReceiver, null);
-
-        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
-        mediaSession.setCallback(this);
-
-        setMediaSessionState();
-
-        mediaSession.setActive(true);
-    }
-
-    private void setMediaSessionState() {
-        PlaybackStateCompat playback = new PlaybackStateCompat.Builder()
-                .setActions(PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
-                        PlaybackStateCompat.ACTION_SKIP_TO_NEXT |
-                        PlaybackStateCompat.ACTION_PLAY_PAUSE
-                )
-                .setState(isPlaying() ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, getCurrentPosition(), 1)
-                .build();
-        mediaSession.setPlaybackState(playback);
+        play();
     }
 
     public void setListener(ControlListener listener) {
@@ -110,7 +78,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
                     nowPlayingPosition = -1;
                     playNextSong();
                 } else {
-                    onStop();
+                    endPlayback();
                 }
             }
         }
@@ -121,14 +89,14 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
         public void onAudioFocusChange(int focusChange) {
             switch (focusChange) {
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                    onPause();
+                    pause();
                     break;
                 case AudioManager.AUDIOFOCUS_GAIN:
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
-                    onPlay();
+                    play();
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS:
-                    onPause(); // TODO: This needs to be changed to onStop once saving state is implemented
+                    pause(); // TODO: This needs to be changed to endPlayback once saving state is implemented
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                     volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
@@ -145,13 +113,10 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
         nowPlaying = queue.get(nowPlayingPosition);
 
         loadSong(nowPlaying);
-        onPlay();
+        play();
     }
 
-    @Override
-    public void onPlay() {
-        super.onPlay();
-
+    public void play() {
         if (!isInValidState) {
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setOnCompletionListener(onCompletionListener);
@@ -165,8 +130,6 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
             launchNotification(true);
             nowPlaying.setAnimated(true);
         }
-
-        setMediaSessionState();
     }
 
     public boolean requestAudioFocus(AudioManager manager, AudioManager.OnAudioFocusChangeListener listener) {
@@ -176,7 +139,6 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
         return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
     }
 
-
     public void stop() {
         if (isInValidState) {
             mediaPlayer.stop();
@@ -185,10 +147,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
         nowPlaying.setAnimated(false);
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-
+    public void pause() {
         nowPlaying.setAnimated(false);
         mediaPlayer.pause();
         listener.songPause();
@@ -196,10 +155,9 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
         audioManager.abandonAudioFocus(onAudioFocusChangeListener);
 
         launchNotification(false);
-        setMediaSessionState();
     }
 
-    // Resets the variables needed for the onSkipToPrevious button
+    // Resets the variables needed for the back button
     private Runnable r = new Runnable() {
         @Override
         public void run() {
@@ -208,10 +166,10 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
         }
     };
 
-    @Override
-    public void onSkipToPrevious() {
-        super.onSkipToPrevious();
-
+    /*
+     * Goes backwards in the play queue
+     */
+    public void back() {
         back = true;
 
         if (startOver) {
@@ -225,13 +183,10 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
 
         stop();
         nowPlaying = queue.get(nowPlayingPosition);
-        onPlay();
+        play();
     }
 
-    @Override
-    public void onSkipToNext() {
-        super.onSkipToNext();
-
+    public void skip() {
         if (nowPlayingPosition != queue.size() - 1)
             playNextSong();
     }
@@ -245,24 +200,12 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
                 isInValidState = true;
             }
 
-            setMetadata(item);
-
             launchNotification(false);
 
             listener.loadNewSongInfo(item);
         } catch (Exception e) {
-            Log.e(GlobalFunctions.TAG, e.toString());
+            Toast.makeText(listener.getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
         }
-    }
-
-    private void setMetadata(SongListViewItem item){
-        MediaMetadataCompat metadata = new MediaMetadataCompat.Builder().putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, GlobalFunctions.getBitmapFromID(item.getAlbumID(), 300, listener.getContext()))
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, item.getAlbumName())
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, item.getArtistName())
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, item.getTitle())
-                .build();
-
-        mediaSession.setMetadata(metadata);
     }
 
     /*
@@ -294,13 +237,13 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
      * @return  boolean A boolean indicating if the song is playing
      */
     public boolean isPlaying() {
-        return isInValidState ? mediaPlayer.isPlaying() : false;
+        return mediaPlayer.isPlaying();
     }
 
     /*
      * Plays the song in the queue at the given position
      *
-     * @param   position    An int indicating which song in the queue to onPlay
+     * @param   position    An int indicating which song in the queue to play
      */
     public void playSongAtPosition(int position) {
         if (position > 0 && position < queue.size()) {
@@ -308,7 +251,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
             nowPlayingPosition = position;
             nowPlaying = queue.get(nowPlayingPosition);
             loadSong(nowPlaying);
-            onPlay();
+            play();
         }
     }
 
@@ -345,20 +288,23 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
      * @return  int An int indicating the current time of the song in ms
      */
     public int getCurrentPosition() {
-        return isInValidState ? mediaPlayer.getCurrentPosition() : 0;
-    }
-
-    public void onSeekTo(int pos) {
-        super.onSeekTo(pos);
-
-        if (!isInValidState) {
-            onPlay();
-        }
-        mediaPlayer.seekTo(pos);
+        return mediaPlayer.getCurrentPosition();
     }
 
     /*
-     * Returns the onPlay queue
+     * Seeks the media player to the passed in position
+     *
+     * @param   position    The position the media player is to seek to
+     */
+    public void seekTo(int position) {
+        if (!isInValidState) {
+            play();
+        }
+        mediaPlayer.seekTo(position);
+    }
+
+    /*
+     * Returns the play queue
      *
      * @return  queue   An ArrayList of the songs being played (SongListViewItem)s
      */
@@ -384,10 +330,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
         nowPlayingPosition = this.queue.indexOf(nowPlaying);
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-
+    public void endPlayback() {
         stop();
         audioManager.abandonAudioFocus(onAudioFocusChangeListener);
         mediaPlayer.release();
@@ -403,7 +346,6 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
             listener.onFinish();
             listener.destroy();
         }
-        mediaSession.release();
         NotificationManagement.removeNotification(listener.getContext());
     }
 
@@ -414,15 +356,15 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
      */
     public void removeSong(int position) {
 
-        // If this is the only song, just onStop the media player
+        // If this is the only song, just endPlayback the media player
         if (queue.size() == 1) {
-            onStop();
+            endPlayback();
             nowPlaying.setAnimated(false);
         } else {
 
             // If song is currently playing
             if (position == nowPlayingPosition) {
-                // If it is the last song, go onSkipToPrevious to the previous song
+                // If it is the last song, go back to the previous song
                 if (position == queue.size() - 1) {
                     nowPlayingPosition = nowPlayingPosition - 2;
                 }

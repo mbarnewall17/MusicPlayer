@@ -8,8 +8,6 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Binder;
 import android.os.IBinder;
-import android.support.v4.media.session.MediaControllerCompat;
-import android.support.v4.media.session.MediaSessionCompat;
 
 import com.barnewall.matthew.musicplayer.BroadcastReceivers.HeadsetUnpluggedReceiver;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
@@ -17,7 +15,7 @@ import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 import java.util.ArrayList;
 
 public class MusicPlayerService extends Service {
-    private MediaPlayerManager mediaPlayerManager;
+    private MediaPlayerManager manager;
 
     // Indicate updating the queue
     public static final String UPDATE_QUEUE = "barnewall.musicplayerservice.update";
@@ -30,25 +28,25 @@ public class MusicPlayerService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals(UPDATE_QUEUE)){
-                mediaPlayerManager.updateNowPlayingPosition();
+                manager.updateNowPlayingPosition();
             }
             else if(intent.getAction().equals(NotificationManagement.EXIT_MUSIC)){
-                mediaPlayerManager.onStop();
+                manager.endPlayback();
                 NotificationManagement.removeNotification(getApplicationContext());
             }
             else if(intent.getAction().equals(NotificationManagement.TOGGLE_PLAY_MUSIC)){
-                if(mediaPlayerManager.isPlaying()) {
-                    mediaPlayerManager.onPause();
+                if(manager.isPlaying()) {
+                    manager.pause();
                 }
                 else{
-                    mediaPlayerManager.onPlay();
+                    manager.play();
                 }
 
             }
             else if(intent.getAction().equals(NotificationManagement.BACK_MUSIC))
-                mediaPlayerManager.onSkipToPrevious();
+                manager.back();
             else if(intent.getAction().equals(NotificationManagement.NEXT_MUSIC))
-                mediaPlayerManager.onSkipToNext();
+                manager.skip();
         }
     };
 
@@ -62,15 +60,14 @@ public class MusicPlayerService extends Service {
     }
 
     public MediaPlayerManager startPlaying(ArrayList<SongListViewItem> queue,int position, ControlListener listener){
-        if(mediaPlayerManager != null && mediaPlayerManager.isInValidState()){
-            mediaPlayerManager.onStop();
+        if(manager != null && manager.isInValidState()){
+            manager.endPlayback();
         }
-
-        return mediaPlayerManager = new MediaPlayerManager(queue, position, listener);
+        return manager = new MediaPlayerManager(queue, position, listener);
     }
 
-    public MediaPlayerManager getMediaPlayerManager(){
-        return mediaPlayerManager;
+    public MediaPlayerManager getManager(){
+        return manager;
     }
 
     public class MyBinder extends Binder{
@@ -82,7 +79,6 @@ public class MusicPlayerService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(UPDATE_QUEUE);
         intentFilter.addAction(NotificationManagement.EXIT_MUSIC);
