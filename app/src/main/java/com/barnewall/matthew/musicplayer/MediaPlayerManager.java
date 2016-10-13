@@ -188,8 +188,6 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
         mediaPlayer.pause();
         listener.songPause();
 
-        audioManager.abandonAudioFocus(onAudioFocusChangeListener);
-
         launchNotification(false);
         setMediaSessionState();
     }
