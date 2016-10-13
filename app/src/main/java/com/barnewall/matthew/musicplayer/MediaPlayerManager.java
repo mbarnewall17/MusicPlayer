@@ -23,7 +23,6 @@ import java.util.Collections;
  */
 public class MediaPlayerManager extends MediaSessionCompat.Callback{
     public static MediaSessionCompat mediaSession;
-    public  static MediaPlayerManager Instance;
 
     private MediaPlayer mediaPlayer;
     private ArrayList<SongListViewItem> queue;
@@ -68,7 +67,6 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
         nowPlaying = queue.get(nowPlayingPosition);
         loadSong(nowPlaying);
         onPlay();
-        Instance = this;
     }
 
     private void setUpMediaSession(){
