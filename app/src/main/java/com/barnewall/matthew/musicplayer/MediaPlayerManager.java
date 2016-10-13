@@ -49,23 +49,18 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
         this.queue = queue;
         this.nowPlayingPosition = nowPlayingPosition;
         this.nowPlaying = queue.get(nowPlayingPosition);
-        mediaPlayer = new MediaPlayer();
         this.listener = listener;
         startOver = true;
         back = false;
-        isInValidState = true;
+        isInValidState = false;
         handler = new Handler();
         shuffle = false;
         repeat = Repeat.NONE;
         audioManager = (AudioManager) listener.getContext().getSystemService(Context.AUDIO_SERVICE);
         volume = 0;
 
-        mediaPlayer.setOnCompletionListener(onCompletionListener);
-
         setUpMediaSession();
 
-        nowPlaying = queue.get(nowPlayingPosition);
-        loadSong(nowPlaying);
         onPlay();
     }
 
@@ -231,7 +226,6 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
     @Override
     public void onSkipToNext() {
         super.onSkipToNext();
-
         if (nowPlayingPosition != queue.size() - 1)
             playNextSong();
     }
