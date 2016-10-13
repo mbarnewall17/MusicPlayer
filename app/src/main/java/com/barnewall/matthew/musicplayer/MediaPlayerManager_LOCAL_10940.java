@@ -42,16 +42,21 @@ public class MediaPlayerManager {
         this.queue = queue;
         this.nowPlayingPosition = nowPlayingPosition;
         this.nowPlaying = queue.get(nowPlayingPosition);
+        mediaPlayer = new MediaPlayer();
         this.listener = listener;
         startOver = true;
         back = false;
-        isInValidState = false;
+        isInValidState = true;
         handler = new Handler();
         shuffle = false;
         repeat = Repeat.NONE;
         audioManager = (AudioManager) listener.getContext().getSystemService(Context.AUDIO_SERVICE);
         volume = 0;
 
+        mediaPlayer.setOnCompletionListener(onCompletionListener);
+
+        nowPlaying = queue.get(nowPlayingPosition);
+        loadSong(nowPlaying);
         play();
     }
 
@@ -147,10 +152,12 @@ public class MediaPlayerManager {
         mediaPlayer.pause();
         listener.songPause();
 
+        audioManager.abandonAudioFocus(onAudioFocusChangeListener);
+
         launchNotification(false);
     }
 
-    // Resets the variables needed for the skip button
+    // Resets the variables needed for the back button
     private Runnable r = new Runnable() {
         @Override
         public void run() {
@@ -349,7 +356,7 @@ public class MediaPlayerManager {
      */
     public void removeSong(int position) {
 
-        // If this is the only song, just stop the media player
+        // If this is the only song, just endPlayback the media player
         if (queue.size() == 1) {
             endPlayback();
             nowPlaying.setAnimated(false);

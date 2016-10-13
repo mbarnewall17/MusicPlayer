@@ -52,7 +52,40 @@ public class MediaPlayerManager {
         audioManager = (AudioManager) listener.getContext().getSystemService(Context.AUDIO_SERVICE);
         volume = 0;
 
+<<<<<<< HEAD
+        mediaPlayer.setOnCompletionListener(onCompletionListener);
+
+        nowPlaying = queue.get(nowPlayingPosition);
+        loadSong(nowPlaying);
         play();
+=======
+        setUpMediaSession();
+
+        onPlay();
+    }
+
+    private void setUpMediaSession(){
+        ComponentName mediaButtonReceiver = new ComponentName(listener.getContext(), RemoteControlReceiver.class);
+        mediaSession = new MediaSessionCompat(listener.getContext(), GlobalFunctions.TAG, mediaButtonReceiver, null);
+
+        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mediaSession.setCallback(this);
+
+        setMediaSessionState();
+
+        mediaSession.setActive(true);
+    }
+
+    private void setMediaSessionState() {
+        PlaybackStateCompat playback = new PlaybackStateCompat.Builder()
+                .setActions(PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
+                        PlaybackStateCompat.ACTION_SKIP_TO_NEXT |
+                        PlaybackStateCompat.ACTION_PLAY_PAUSE
+                )
+                .setState(isPlaying() ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, getCurrentPosition(), 1)
+                .build();
+        mediaSession.setPlaybackState(playback);
+>>>>>>> media-session
     }
 
     public void setListener(ControlListener listener) {
@@ -150,7 +183,11 @@ public class MediaPlayerManager {
         launchNotification(false);
     }
 
+<<<<<<< HEAD
+    // Resets the variables needed for the back button
+=======
     // Resets the variables needed for the skip button
+>>>>>>> media-session
     private Runnable r = new Runnable() {
         @Override
         public void run() {
@@ -179,7 +216,13 @@ public class MediaPlayerManager {
         play();
     }
 
+<<<<<<< HEAD
     public void skip() {
+=======
+    @Override
+    public void onSkipToNext() {
+        super.onSkipToNext();
+>>>>>>> media-session
         if (nowPlayingPosition != queue.size() - 1)
             playNextSong();
     }
@@ -349,7 +392,11 @@ public class MediaPlayerManager {
      */
     public void removeSong(int position) {
 
+<<<<<<< HEAD
+        // If this is the only song, just endPlayback the media player
+=======
         // If this is the only song, just stop the media player
+>>>>>>> media-session
         if (queue.size() == 1) {
             endPlayback();
             nowPlaying.setAnimated(false);

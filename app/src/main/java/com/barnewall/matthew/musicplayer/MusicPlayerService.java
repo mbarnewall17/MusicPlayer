@@ -24,7 +24,6 @@ public class MusicPlayerService extends Service {
 
     // Sets then MediaPlayerManager's queue to the one in the extras
     private BroadcastReceiver receiver = new BroadcastReceiver(){
-
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals(UPDATE_QUEUE)){
