@@ -25,10 +25,12 @@ public class HeadsetUnpluggedReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if(GlobalFunctions.isServiceRunning(context, MusicPlayerService.class)){
-            AudioManager manager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-            if(!manager.isWiredHeadsetOn())
-                context.sendBroadcast(new Intent(NotificationManagement.TOGGLE_PLAY_MUSIC));
+        if(intent.getAction().equals(Intent.ACTION_HEADSET_PLUG) && !isInitialStickyBroadcast()){
+            if(GlobalFunctions.isServiceRunning(context, MusicPlayerService.class)){
+                AudioManager manager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+                if(!manager.isWiredHeadsetOn())
+                    context.sendBroadcast(new Intent(NotificationManagement.TOGGLE_PLAY_MUSIC));
+            }
         }
     }
 }
