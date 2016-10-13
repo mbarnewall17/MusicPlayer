@@ -192,7 +192,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
         setMediaSessionState();
     }
 
-    // Resets the variables needed for the onSkipToPrevious button
+    // Resets the variables needed for the skip button
     private Runnable r = new Runnable() {
         @Override
         public void run() {
@@ -292,7 +292,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
     /*
      * Plays the song in the queue at the given position
      *
-     * @param   position    An int indicating which song in the queue to onPlay
+     * @param   position    An int indicating which song in the queue to play
      */
     public void playSongAtPosition(int position) {
         if (position > 0 && position < queue.size()) {
@@ -350,7 +350,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
     }
 
     /*
-     * Returns the onPlay queue
+     * Returns the play queue
      *
      * @return  queue   An ArrayList of the songs being played (SongListViewItem)s
      */
@@ -406,7 +406,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
      */
     public void removeSong(int position) {
 
-        // If this is the only song, just onStop the media player
+        // If this is the only song, just stop the media player
         if (queue.size() == 1) {
             onStop();
             nowPlaying.setAnimated(false);
@@ -414,7 +414,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
 
             // If song is currently playing
             if (position == nowPlayingPosition) {
-                // If it is the last song, go onSkipToPrevious to the previous song
+                // If it is the last song, go back to the previous song
                 if (position == queue.size() - 1) {
                     nowPlayingPosition = nowPlayingPosition - 2;
                 }
