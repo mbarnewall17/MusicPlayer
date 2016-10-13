@@ -8,8 +8,6 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Binder;
 import android.os.IBinder;
-import android.support.v4.media.session.MediaControllerCompat;
-import android.support.v4.media.session.MediaSessionCompat;
 
 import com.barnewall.matthew.musicplayer.BroadcastReceivers.HeadsetUnpluggedReceiver;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
@@ -26,7 +24,6 @@ public class MusicPlayerService extends Service {
 
     // Sets then MediaPlayerManager's queue to the one in the extras
     private BroadcastReceiver receiver = new BroadcastReceiver(){
-
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals(UPDATE_QUEUE)){
