@@ -16,12 +16,10 @@ import android.app.Fragment;
 import android.os.Environment;
 import android.os.IBinder;
 import android.provider.MediaStore;
-import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -489,20 +487,20 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public void handleSkip(View view) {
-        manager.skip();
+        manager.onSkipToNext();
         Log.d(GlobalFunctions.TAG, "song skipped");
     }
 
 
     public void handleBack(View view) {
-        manager.back();
+        manager.onSkipToPrevious();
     }
 
     public void togglePlay(View view) {
         if (manager.isInValidState() && manager.isPlaying())
-            manager.pause();
+            manager.onPause();
         else
-            manager.play();
+            manager.onPlay();
     }
 
     public SongListViewItem getNowPlaying() {
@@ -538,7 +536,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public void seekTo(int position) {
-        manager.seekTo(position);
+        manager.onSeekTo(position);
     }
 
     public MusicCategories getWhereCategory() {
@@ -567,7 +565,7 @@ public class MainActivity extends ActionBarActivity implements
 
             // Destroys the manager if manager is not already destroyed
             if (manager.isInValidState())
-                manager.endPlayback();
+                manager.onStop();
 
         }
     }
@@ -644,7 +642,7 @@ public class MainActivity extends ActionBarActivity implements
         ArrayList<SongListViewItem> newSongs = menuGetSongs(view);
 
         if (manager != null)
-            manager.endPlayback();
+            manager.onStop();
 
         handleSongOnClick(newSongs, 0);
     }
@@ -827,7 +825,7 @@ public class MainActivity extends ActionBarActivity implements
     public void onResume() {
         super.onResume();
 
-        // If endPlayback was called when the app was closed, call endPlayback when reopened
+        // If onStop was called when the app was closed, call onStop when reopened
         if (popOnResume)
             destroy();
     }
@@ -839,7 +837,7 @@ public class MainActivity extends ActionBarActivity implements
      *  @param view,    The view that initiated the method call
      */
     public void toggleShuffle(View view) {
-        if (manager.isShuffle())
+        if (manager.isShuffleEnabled())
             findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP);
         else
             findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
@@ -849,7 +847,7 @@ public class MainActivity extends ActionBarActivity implements
 
 
     public boolean isShuffle() {
-        return manager.isShuffle();
+        return manager.isShuffleEnabled();
     }
 
     public void toggleRepeat(View view) {

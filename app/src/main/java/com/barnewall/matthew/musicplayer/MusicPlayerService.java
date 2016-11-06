@@ -15,7 +15,7 @@ import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 import java.util.ArrayList;
 
 public class MusicPlayerService extends Service {
-    private MediaPlayerManager manager;
+    private MediaPlayerManager mediaPlayerManager;
 
     // Indicate updating the queue
     public static final String UPDATE_QUEUE = "barnewall.musicplayerservice.update";
@@ -27,25 +27,25 @@ public class MusicPlayerService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals(UPDATE_QUEUE)){
-                manager.updateNowPlayingPosition();
+                mediaPlayerManager.updateNowPlayingPosition();
             }
             else if(intent.getAction().equals(NotificationManagement.EXIT_MUSIC)){
-                manager.endPlayback();
+                mediaPlayerManager.onStop();
                 NotificationManagement.removeNotification(getApplicationContext());
             }
             else if(intent.getAction().equals(NotificationManagement.TOGGLE_PLAY_MUSIC)){
-                if(manager.isPlaying()) {
-                    manager.pause();
+                if(mediaPlayerManager.isPlaying()) {
+                    mediaPlayerManager.onPause();
                 }
                 else{
-                    manager.play();
+                    mediaPlayerManager.onPlay();
                 }
 
             }
             else if(intent.getAction().equals(NotificationManagement.BACK_MUSIC))
-                manager.back();
+                mediaPlayerManager.onSkipToPrevious();
             else if(intent.getAction().equals(NotificationManagement.NEXT_MUSIC))
-                manager.skip();
+                mediaPlayerManager.onSkipToNext();
         }
     };
 
@@ -59,14 +59,15 @@ public class MusicPlayerService extends Service {
     }
 
     public MediaPlayerManager startPlaying(ArrayList<SongListViewItem> queue,int position, ControlListener listener){
-        if(manager != null && manager.isInValidState()){
-            manager.endPlayback();
+        if(mediaPlayerManager != null && mediaPlayerManager.isInValidState()){
+            mediaPlayerManager.onStop();
         }
-        return manager = new MediaPlayerManager(queue, position, listener);
+
+        return mediaPlayerManager = new MediaPlayerManager(queue, position, listener);
     }
 
-    public MediaPlayerManager getManager(){
-        return manager;
+    public MediaPlayerManager getMediaPlayerManager(){
+        return mediaPlayerManager;
     }
 
     public class MyBinder extends Binder{
@@ -78,6 +79,7 @@ public class MusicPlayerService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(UPDATE_QUEUE);
         intentFilter.addAction(NotificationManagement.EXIT_MUSIC);

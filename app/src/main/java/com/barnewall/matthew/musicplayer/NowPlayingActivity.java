@@ -6,32 +6,26 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.drawable.AnimationDrawable;
 import android.media.AudioManager;
 import android.os.Environment;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupMenu;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.barnewall.matthew.musicplayer.Playlist.PlaylistManager;
 import com.barnewall.matthew.musicplayer.Song.NowPlayingAdapter;
-import com.barnewall.matthew.musicplayer.Song.SongAdapter;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
 import java.util.ArrayList;
-import java.util.ResourceBundle;
 
 public class NowPlayingActivity extends ActionBarActivity implements ControlListener {
     // Variables for interacting with service that plays the music
@@ -60,7 +54,7 @@ public class NowPlayingActivity extends ActionBarActivity implements ControlList
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
                 NowPlayingActivity.this.service = service;
-                manager = ((MusicPlayerService.MyBinder)service).getService().getManager();
+                manager = ((MusicPlayerService.MyBinder)service).getService().getMediaPlayerManager();
 
                 queue = manager.getQueue();
 
@@ -175,7 +169,7 @@ public class NowPlayingActivity extends ActionBarActivity implements ControlList
                     QueueListView listView = (QueueListView) findViewById(R.id.queue_listview);
                     listView.invalidateViews();
 
-                    // If no songs are left, go back to the main activity
+                    // If no songs are left, go onSkipToPrevious to the main activity
                     if(manager.getNowPlaying() == null){
                         finish();
                     }

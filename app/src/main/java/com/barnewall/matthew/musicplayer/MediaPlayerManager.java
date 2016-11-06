@@ -1,29 +1,35 @@
 package com.barnewall.matthew.musicplayer;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Handler;
-import android.os.PowerManager;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.barnewall.matthew.musicplayer.BroadcastReceivers.RemoteControlReceiver;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.TooManyListenersException;
 
 /**
  * Created by Matthew on 8/18/2015.
  */
-public class MediaPlayerManager {
+public class MediaPlayerManager extends MediaSessionCompat.Callback {
+    public static MediaSessionCompat mediaSession;
+
     private MediaPlayer mediaPlayer;
     private ArrayList<SongListViewItem> queue;
     private SongListViewItem nowPlaying;
     private int nowPlayingPosition;
-    private Handler handler;
     private ControlListener listener;
+    private boolean back;
     private boolean isInValidState;
     private boolean shuffle;
     private ArrayList<SongListViewItem> alternateQueue;
@@ -41,13 +47,37 @@ public class MediaPlayerManager {
         this.nowPlaying = queue.get(nowPlayingPosition);
         this.listener = listener;
         isInValidState = false;
-        handler = new Handler();
         shuffle = false;
         repeat = Repeat.NONE;
         audioManager = (AudioManager) listener.getContext().getSystemService(Context.AUDIO_SERVICE);
         volume = 0;
 
-        play();
+        setUpMediaSession();
+
+        onPlay();
+    }
+
+    private void setUpMediaSession() {
+        ComponentName mediaButtonReceiver = new ComponentName(listener.getContext(), RemoteControlReceiver.class);
+        mediaSession = new MediaSessionCompat(listener.getContext(), GlobalFunctions.TAG, mediaButtonReceiver, null);
+
+        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mediaSession.setCallback(this);
+
+        setMediaSessionState();
+
+        mediaSession.setActive(true);
+    }
+
+    private void setMediaSessionState() {
+        PlaybackStateCompat playback = new PlaybackStateCompat.Builder()
+                .setActions(PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
+                        PlaybackStateCompat.ACTION_SKIP_TO_NEXT |
+                        PlaybackStateCompat.ACTION_PLAY_PAUSE
+                )
+                .setState(isPlaying() ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, getCurrentPosition(), 1)
+                .build();
+        mediaSession.setPlaybackState(playback);
     }
 
     public void setListener(ControlListener listener) {
@@ -68,7 +98,7 @@ public class MediaPlayerManager {
                     nowPlayingPosition = -1;
                     playNextSong();
                 } else {
-                    endPlayback();
+                    onStop();
                 }
             }
         }
@@ -79,14 +109,14 @@ public class MediaPlayerManager {
         public void onAudioFocusChange(int focusChange) {
             switch (focusChange) {
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                    pause();
+                    onPause();
                     break;
                 case AudioManager.AUDIOFOCUS_GAIN:
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
-                    play();
+                    onPlay();
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS:
-                    pause(); // TODO: This needs to be changed to endPlayback once saving state is implemented
+                    onPause(); // TODO: This needs to be changed to onStop once saving state is implemented
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                     volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
@@ -103,16 +133,19 @@ public class MediaPlayerManager {
         nowPlaying = queue.get(nowPlayingPosition);
 
         loadSong(nowPlaying);
-        play();
+        onPlay();
     }
 
-    public void play() {
+    @Override
+    public void onPlay() {
+        super.onPlay();
+
         if (!isInValidState) {
             mediaPlayer = new MediaPlayer();
-            mediaPlayer.setWakeMode(listener.getContext(), PowerManager.PARTIAL_WAKE_LOCK);
             mediaPlayer.setOnCompletionListener(onCompletionListener);
             loadSong(nowPlaying);
-        }
+        } else if (back)
+            loadSong(nowPlaying);
 
         if (requestAudioFocus(audioManager, onAudioFocusChangeListener)) {
             mediaPlayer.start();
@@ -120,6 +153,8 @@ public class MediaPlayerManager {
             launchNotification(true);
             nowPlaying.setAnimated(true);
         }
+
+        setMediaSessionState();
     }
 
     public boolean requestAudioFocus(AudioManager manager, AudioManager.OnAudioFocusChangeListener listener) {
@@ -129,6 +164,7 @@ public class MediaPlayerManager {
         return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
     }
 
+
     public void stop() {
         if (isInValidState) {
             mediaPlayer.stop();
@@ -137,28 +173,41 @@ public class MediaPlayerManager {
         nowPlaying.setAnimated(false);
     }
 
-    public void pause() {
+    @Override
+    public void onPause() {
+        super.onPause();
+
         nowPlaying.setAnimated(false);
         mediaPlayer.pause();
         listener.songPause();
 
         launchNotification(false);
+        setMediaSessionState();
     }
 
-    public void back() {
-        if(mediaPlayer.getCurrentPosition() > 10000){
+    // Resets the variables needed for the skip button
+    private Runnable r = new Runnable() {
+        @Override
+        public void run() {
+            back = false;
+        }
+    };
+
+    @Override
+    public void onSkipToPrevious() {
+        if (mediaPlayer.getCurrentPosition() > 10000) {
             stop();
             loadSong(nowPlaying);
-            play();
-        }
-        else {
+        } else {
             if (nowPlayingPosition > 0)
                 nowPlayingPosition = nowPlayingPosition - 2;
             playNextSong();
         }
     }
 
-    public void skip() {
+    @Override
+    public void onSkipToNext() {
+        super.onSkipToNext();
         if (nowPlayingPosition != queue.size() - 1)
             playNextSong();
     }
@@ -172,12 +221,24 @@ public class MediaPlayerManager {
                 isInValidState = true;
             }
 
+            setMetadata(item);
+
             launchNotification(false);
 
             listener.loadNewSongInfo(item);
         } catch (Exception e) {
-            Toast.makeText(listener.getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+            Log.e(GlobalFunctions.TAG, e.toString());
         }
+    }
+
+    private void setMetadata(SongListViewItem item) {
+        MediaMetadataCompat metadata = new MediaMetadataCompat.Builder().putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, GlobalFunctions.getBitmapFromID(item.getAlbumID(), 300, listener.getContext()))
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, item.getAlbumName())
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, item.getArtistName())
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, item.getTitle())
+                .build();
+
+        mediaSession.setMetadata(metadata);
     }
 
     /*
@@ -209,7 +270,7 @@ public class MediaPlayerManager {
      * @return  boolean A boolean indicating if the song is playing
      */
     public boolean isPlaying() {
-        return mediaPlayer.isPlaying();
+        return isInValidState ? mediaPlayer.isPlaying() : false;
     }
 
     /*
@@ -223,7 +284,7 @@ public class MediaPlayerManager {
             nowPlayingPosition = position;
             nowPlaying = queue.get(nowPlayingPosition);
             loadSong(nowPlaying);
-            play();
+            onPlay();
         }
     }
 
@@ -260,49 +321,34 @@ public class MediaPlayerManager {
      * @return  int An int indicating the current time of the song in ms
      */
     public int getCurrentPosition() {
-        return mediaPlayer.getCurrentPosition();
+        return isInValidState ? mediaPlayer.getCurrentPosition() : 0;
     }
 
-    /*
-     * Seeks the media player to the passed in position
-     *
-     * @param   position    The position the media player is to seek to
-     */
-    public void seekTo(int position) {
+    public void onSeekTo(int pos) {
+        super.onSeekTo(pos);
+
         if (!isInValidState) {
-            play();
+            onPlay();
         }
-        mediaPlayer.seekTo(position);
+        mediaPlayer.seekTo(pos);
     }
 
-    /*
-     * Returns the play queue
-     *
-     * @return  queue   An ArrayList of the songs being played (SongListViewItem)s
-     */
     public ArrayList<SongListViewItem> getQueue() {
         return queue;
     }
 
-    /*
-     * Indicates if mediaplayer is in playable state
-     *
-     * @return  boolean A boolean indicating if the manager is in a valid state
-     */
     public boolean isInValidState() {
         return isInValidState;
     }
 
-    /*
-     * Changes now playing position to the index in the queue of the currently playing song
-     *
-     * @param newQueue, The arraylist of the new queue
-     */
     public void updateNowPlayingPosition() {
         nowPlayingPosition = this.queue.indexOf(nowPlaying);
     }
 
-    public void endPlayback() {
+    @Override
+    public void onStop() {
+        super.onStop();
+
         stop();
         audioManager.abandonAudioFocus(onAudioFocusChangeListener);
         mediaPlayer.release();
@@ -318,6 +364,7 @@ public class MediaPlayerManager {
             listener.onFinish();
             listener.destroy();
         }
+        mediaSession.release();
         NotificationManagement.removeNotification(listener.getContext());
     }
 
@@ -330,7 +377,7 @@ public class MediaPlayerManager {
 
         // If this is the only song, just stop the media player
         if (queue.size() == 1) {
-            endPlayback();
+            onStop();
             nowPlaying.setAnimated(false);
         } else {
 
@@ -394,16 +441,10 @@ public class MediaPlayerManager {
 
         }
 
-        // Invert the shuffle boolean
         shuffle = !shuffle;
     }
 
-    /*
-     * Returns whether shuffle is enabled or not
-     *
-     * @return  boolean Boolean indicating if shuffle is enabled
-     */
-    public boolean isShuffle() {
+    public boolean isShuffleEnabled() {
         return shuffle;
     }
 
