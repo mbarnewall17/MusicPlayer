@@ -22,18 +22,14 @@ public class MediaPlayerManager {
     private ArrayList<SongListViewItem> queue;
     private SongListViewItem nowPlaying;
     private int nowPlayingPosition;
-    private boolean startOver;
     private Handler handler;
     private ControlListener listener;
-    private boolean back;
     private boolean isInValidState;
     private boolean shuffle;
     private ArrayList<SongListViewItem> alternateQueue;
     private Repeat repeat;
     private AudioManager audioManager;
     private int volume;
-
-    private static final int BACK_DELAY = 500;
 
     public enum Repeat {
         NONE, REPEAT_SONG, REPEAT_ALL
@@ -44,8 +40,6 @@ public class MediaPlayerManager {
         this.nowPlayingPosition = nowPlayingPosition;
         this.nowPlaying = queue.get(nowPlayingPosition);
         this.listener = listener;
-        startOver = true;
-        back = false;
         isInValidState = false;
         handler = new Handler();
         shuffle = false;
@@ -118,8 +112,7 @@ public class MediaPlayerManager {
             mediaPlayer.setWakeMode(listener.getContext(), PowerManager.PARTIAL_WAKE_LOCK);
             mediaPlayer.setOnCompletionListener(onCompletionListener);
             loadSong(nowPlaying);
-        } else if (back)
-            loadSong(nowPlaying);
+        }
 
         if (requestAudioFocus(audioManager, onAudioFocusChangeListener)) {
             mediaPlayer.start();
@@ -152,33 +145,17 @@ public class MediaPlayerManager {
         launchNotification(false);
     }
 
-    // Resets the variables needed for the skip button
-    private Runnable r = new Runnable() {
-        @Override
-        public void run() {
-            startOver = true;
-            back = false;
-        }
-    };
-
-    /*
-     * Goes backwards in the play queue
-     */
     public void back() {
-        back = true;
-
-        if (startOver) {
-            startOver = false;
-        } else if (nowPlayingPosition > 0) {
-            nowPlayingPosition = nowPlayingPosition - 1;
-            handler.removeCallbacks(r);
+        if(mediaPlayer.getCurrentPosition() > 10000){
+            stop();
+            loadSong(nowPlaying);
+            play();
         }
-
-        handler.postDelayed(r, BACK_DELAY);
-
-        stop();
-        nowPlaying = queue.get(nowPlayingPosition);
-        play();
+        else {
+            if (nowPlayingPosition > 0)
+                nowPlayingPosition = nowPlayingPosition - 2;
+            playNextSong();
+        }
     }
 
     public void skip() {
