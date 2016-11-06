@@ -195,12 +195,12 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback {
 
     @Override
     public void onSkipToPrevious() {
-        if (mediaPlayer.getCurrentPosition() > 10000) {
+        if (mediaPlayer.getCurrentPosition() > 10000 || nowPlayingPosition == 0) {
             stop();
             loadSong(nowPlaying);
+            onPlay();
         } else {
-            if (nowPlayingPosition > 0)
-                nowPlayingPosition = nowPlayingPosition - 2;
+            nowPlayingPosition = nowPlayingPosition - 2;
             playNextSong();
         }
     }
