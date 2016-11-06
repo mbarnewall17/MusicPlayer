@@ -349,29 +349,14 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
         mediaPlayer.seekTo(pos);
     }
 
-    /*
-     * Returns the play queue
-     *
-     * @return  queue   An ArrayList of the songs being played (SongListViewItem)s
-     */
     public ArrayList<SongListViewItem> getQueue() {
         return queue;
     }
 
-    /*
-     * Indicates if mediaplayer is in playable state
-     *
-     * @return  boolean A boolean indicating if the manager is in a valid state
-     */
     public boolean isInValidState() {
         return isInValidState;
     }
 
-    /*
-     * Changes now playing position to the index in the queue of the currently playing song
-     *
-     * @param newQueue, The arraylist of the new queue
-     */
     public void updateNowPlayingPosition() {
         nowPlayingPosition = this.queue.indexOf(nowPlaying);
     }
@@ -472,16 +457,10 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
 
         }
 
-        // Invert the shuffle boolean
         shuffle = !shuffle;
     }
-
-    /*
-     * Returns whether shuffle is enabled or not
-     *
-     * @return  boolean Boolean indicating if shuffle is enabled
-     */
-    public boolean isShuffle() {
+    
+    public boolean isShuffleEnabled() {
         return shuffle;
     }
 

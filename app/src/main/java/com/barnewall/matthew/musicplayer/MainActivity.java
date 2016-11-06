@@ -837,7 +837,7 @@ public class MainActivity extends ActionBarActivity implements
      *  @param view,    The view that initiated the method call
      */
     public void toggleShuffle(View view) {
-        if (manager.isShuffle())
+        if (manager.isShuffleEnabled())
             findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP);
         else
             findViewById(R.id.shuffleImageButton).getBackground().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
@@ -847,7 +847,7 @@ public class MainActivity extends ActionBarActivity implements
 
 
     public boolean isShuffle() {
-        return manager.isShuffle();
+        return manager.isShuffleEnabled();
     }
 
     public void toggleRepeat(View view) {
