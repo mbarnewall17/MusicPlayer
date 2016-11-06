@@ -4,6 +4,7 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -114,6 +115,7 @@ public class MediaPlayerManager {
     public void play() {
         if (!isInValidState) {
             mediaPlayer = new MediaPlayer();
+            mediaPlayer.setWakeMode(listener.getContext(), PowerManager.PARTIAL_WAKE_LOCK);
             mediaPlayer.setOnCompletionListener(onCompletionListener);
             loadSong(nowPlaying);
         } else if (back)
