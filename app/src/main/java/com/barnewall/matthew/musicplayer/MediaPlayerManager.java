@@ -21,15 +21,13 @@ import java.util.Collections;
 /**
  * Created by Matthew on 8/18/2015.
  */
-public class MediaPlayerManager extends MediaSessionCompat.Callback{
+public class MediaPlayerManager extends MediaSessionCompat.Callback {
     public static MediaSessionCompat mediaSession;
 
     private MediaPlayer mediaPlayer;
     private ArrayList<SongListViewItem> queue;
     private SongListViewItem nowPlaying;
     private int nowPlayingPosition;
-    private boolean startOver;
-    private Handler handler;
     private ControlListener listener;
     private boolean back;
     private boolean isInValidState;
@@ -38,8 +36,6 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
     private Repeat repeat;
     private AudioManager audioManager;
     private int volume;
-
-    private static final int BACK_DELAY = 1000;
 
     public enum Repeat {
         NONE, REPEAT_SONG, REPEAT_ALL
@@ -50,10 +46,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
         this.nowPlayingPosition = nowPlayingPosition;
         this.nowPlaying = queue.get(nowPlayingPosition);
         this.listener = listener;
-        startOver = true;
-        back = false;
         isInValidState = false;
-        handler = new Handler();
         shuffle = false;
         repeat = Repeat.NONE;
         audioManager = (AudioManager) listener.getContext().getSystemService(Context.AUDIO_SERVICE);
@@ -64,7 +57,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
         onPlay();
     }
 
-    private void setUpMediaSession(){
+    private void setUpMediaSession() {
         ComponentName mediaButtonReceiver = new ComponentName(listener.getContext(), RemoteControlReceiver.class);
         mediaSession = new MediaSessionCompat(listener.getContext(), GlobalFunctions.TAG, mediaButtonReceiver, null);
 
@@ -196,29 +189,20 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
     private Runnable r = new Runnable() {
         @Override
         public void run() {
-            startOver = true;
             back = false;
         }
     };
 
     @Override
     public void onSkipToPrevious() {
-        super.onSkipToPrevious();
-
-        back = true;
-
-        if (startOver) {
-            startOver = false;
-        } else if (nowPlayingPosition > 0) {
-            nowPlayingPosition = nowPlayingPosition - 1;
-            handler.removeCallbacks(r);
+        if (mediaPlayer.getCurrentPosition() > 10000) {
+            stop();
+            loadSong(nowPlaying);
+        } else {
+            if (nowPlayingPosition > 0)
+                nowPlayingPosition = nowPlayingPosition - 2;
+            playNextSong();
         }
-
-        handler.postDelayed(r, BACK_DELAY);
-
-        stop();
-        nowPlaying = queue.get(nowPlayingPosition);
-        onPlay();
     }
 
     @Override
@@ -247,7 +231,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
         }
     }
 
-    private void setMetadata(SongListViewItem item){
+    private void setMetadata(SongListViewItem item) {
         MediaMetadataCompat metadata = new MediaMetadataCompat.Builder().putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, GlobalFunctions.getBitmapFromID(item.getAlbumID(), 300, listener.getContext()))
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, item.getAlbumName())
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, item.getArtistName())
@@ -459,7 +443,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback{
 
         shuffle = !shuffle;
     }
-    
+
     public boolean isShuffleEnabled() {
         return shuffle;
     }
