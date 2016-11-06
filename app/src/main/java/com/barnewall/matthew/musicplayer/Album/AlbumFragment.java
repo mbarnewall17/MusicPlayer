@@ -95,7 +95,7 @@ public class AlbumFragment extends MusicFragment {
                         musicCursor.getString(4));                // ArtistID
 
                 if(year != null) {
-                    item.setOther(year);
+                    item.setYear(year);
                 }
 
                 // Indicate part of a subquery
@@ -123,13 +123,13 @@ public class AlbumFragment extends MusicFragment {
                     return 1;
                 }
                 else{
-                    if(first.getOther() == null && second.getOther() == null){
+                    if(first.getYear() == null && second.getYear() == null){
                         return first.getTitle().compareTo(second.getTitle());
                     }
-                    else if(first.getOther() != null && second.getOther() != null) {
-                        return Integer.parseInt(first.getOther()) - Integer.parseInt(second.getOther());
+                    else if(first.getYear() != null && second.getYear() != null) {
+                        return Integer.parseInt(first.getYear()) - Integer.parseInt(second.getYear());
                     }
-                    else if(first.getOther() != null){
+                    else if(first.getYear() != null){
                         return -1;
                     }
                     else{

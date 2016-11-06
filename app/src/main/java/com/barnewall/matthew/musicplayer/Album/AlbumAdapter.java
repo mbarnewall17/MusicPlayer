@@ -58,8 +58,8 @@ public class AlbumAdapter extends BaseAdapter{
         name.setText(lv.getTitle());
         name.setSelected(true);
         String extraText = lv.getArtistName();
-        if(lv.getOther() != null){
-            extraText = extraText + "(" + lv.getOther() + ")";
+        if(lv.getYear() != null){
+            extraText = extraText + "(" + lv.getYear() + ")";
         }
         extra.setText(extraText);
         art.setImageBitmap(lv.getAlbumArt());

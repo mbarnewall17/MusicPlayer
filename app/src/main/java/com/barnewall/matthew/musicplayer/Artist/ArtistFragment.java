@@ -78,7 +78,7 @@ public class ArtistFragment extends MusicFragment {
                         ,artistName, musicCursor.getString(0), null, musicCursor.getString(4));
 
                 if(year != null){
-                    item.setOther(year);
+                    item.setYear(year);
                 }
 
                 item.setSubQuery(true);
