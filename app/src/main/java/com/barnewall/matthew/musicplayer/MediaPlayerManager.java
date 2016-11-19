@@ -2,26 +2,27 @@ package com.barnewall.matthew.musicplayer;
 
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.os.Handler;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.barnewall.matthew.musicplayer.BroadcastReceivers.RemoteControlReceiver;
 import com.barnewall.matthew.musicplayer.Song.SongListViewItem;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
 /**
  * Created by Matthew on 8/18/2015.
  */
-public class MediaPlayerManager extends MediaSessionCompat.Callback {
+public class MediaPlayerManager extends MediaSessionCompat.Callback
+        implements MediaPlayer.OnPreparedListener,
+        MediaPlayer.OnCompletionListener,
+        MediaPlayer.OnErrorListener {
     public static MediaSessionCompat mediaSession;
 
     private MediaPlayer mediaPlayer;
@@ -29,12 +30,10 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback {
     private SongListViewItem nowPlaying;
     private int nowPlayingPosition;
     private ControlListener listener;
-    private boolean back;
     private boolean isInValidState;
     private boolean shuffle;
     private ArrayList<SongListViewItem> alternateQueue;
     private Repeat repeat;
-    private AudioManager audioManager;
     private int volume;
 
     public enum Repeat {
@@ -49,12 +48,15 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback {
         isInValidState = false;
         shuffle = false;
         repeat = Repeat.NONE;
-        audioManager = (AudioManager) listener.getContext().getSystemService(Context.AUDIO_SERVICE);
         volume = 0;
 
         setUpMediaSession();
 
-        onPlay();
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setOnCompletionListener(this);
+        mediaPlayer.setOnPreparedListener(this);
+        mediaPlayer.setOnErrorListener(this);
+        loadSong(nowPlaying);
     }
 
     private void setUpMediaSession() {
@@ -84,25 +86,39 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback {
         this.listener = listener;
     }
 
-    private MediaPlayer.OnCompletionListener onCompletionListener = new MediaPlayer.OnCompletionListener() {
-        @Override
-        public void onCompletion(MediaPlayer mp) {
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+        if (repeat == Repeat.REPEAT_SONG)
+            nowPlayingPosition--;
 
-            if (repeat == Repeat.REPEAT_SONG)
-                nowPlayingPosition--;
-
-            if (nowPlayingPosition != MediaPlayerManager.this.queue.size() - 1)
+        if (nowPlayingPosition != MediaPlayerManager.this.queue.size() - 1)
+            playNextSong();
+        else {
+            if (repeat == Repeat.REPEAT_ALL) {
+                nowPlayingPosition = -1;
                 playNextSong();
-            else {
-                if (repeat == Repeat.REPEAT_ALL) {
-                    nowPlayingPosition = -1;
-                    playNextSong();
-                } else {
-                    onStop();
-                }
+            } else {
+                onStop();
             }
         }
-    };
+    }
+
+    @Override
+    public void onPrepared(MediaPlayer mediaPlayer) {
+        isInValidState = true;
+
+        setMetadata(nowPlaying);
+
+        launchNotification(false);
+
+        onPlay();
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
+        mediaPlayer.release();
+        return false;
+    }
 
     private AudioManager.OnAudioFocusChangeListener onAudioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
         @Override
@@ -112,13 +128,14 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback {
                     onPause();
                     break;
                 case AudioManager.AUDIOFOCUS_GAIN:
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
+                    ((AudioManager) listener.getContext().getSystemService(Context.AUDIO_SERVICE)).setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
                     onPlay();
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS:
                     onPause(); // TODO: This needs to be changed to onStop once saving state is implemented
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                    AudioManager audioManager = (AudioManager) listener.getContext().getSystemService(Context.AUDIO_SERVICE);
                     volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, (int) (volume * .5), 0);
                     break;
@@ -133,21 +150,13 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback {
         nowPlaying = queue.get(nowPlayingPosition);
 
         loadSong(nowPlaying);
-        onPlay();
     }
 
     @Override
     public void onPlay() {
         super.onPlay();
 
-        if (!isInValidState) {
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setOnCompletionListener(onCompletionListener);
-            loadSong(nowPlaying);
-        } else if (back)
-            loadSong(nowPlaying);
-
-        if (requestAudioFocus(audioManager, onAudioFocusChangeListener)) {
+        if (requestAudioFocus((AudioManager) listener.getContext().getSystemService(Context.AUDIO_SERVICE), onAudioFocusChangeListener)) {
             mediaPlayer.start();
             listener.songPlay();
             launchNotification(true);
@@ -185,20 +194,11 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback {
         setMediaSessionState();
     }
 
-    // Resets the variables needed for the skip button
-    private Runnable r = new Runnable() {
-        @Override
-        public void run() {
-            back = false;
-        }
-    };
-
     @Override
     public void onSkipToPrevious() {
         if (mediaPlayer.getCurrentPosition() > 10000 || nowPlayingPosition == 0) {
             stop();
             loadSong(nowPlaying);
-            onPlay();
         } else {
             nowPlayingPosition = nowPlayingPosition - 2;
             playNextSong();
@@ -217,16 +217,10 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback {
             if (item != null) {
                 Log.d(GlobalFunctions.TAG, "song loaded from: " + item.getDataLocation());
                 mediaPlayer.setDataSource(item.getDataLocation());
-                mediaPlayer.prepare();
-                isInValidState = true;
+                mediaPlayer.prepareAsync();
+                listener.loadNewSongInfo(nowPlaying);
             }
-
-            setMetadata(item);
-
-            launchNotification(false);
-
-            listener.loadNewSongInfo(item);
-        } catch (Exception e) {
+        } catch (IOException e) {
             Log.e(GlobalFunctions.TAG, e.toString());
         }
     }
@@ -284,7 +278,6 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback {
             nowPlayingPosition = position;
             nowPlaying = queue.get(nowPlayingPosition);
             loadSong(nowPlaying);
-            onPlay();
         }
     }
 
@@ -327,9 +320,6 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback {
     public void onSeekTo(int pos) {
         super.onSeekTo(pos);
 
-        if (!isInValidState) {
-            onPlay();
-        }
         mediaPlayer.seekTo(pos);
     }
 
@@ -350,7 +340,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback {
         super.onStop();
 
         stop();
-        audioManager.abandonAudioFocus(onAudioFocusChangeListener);
+        ((AudioManager) listener.getContext().getSystemService(Context.AUDIO_SERVICE)).abandonAudioFocus(onAudioFocusChangeListener);
         mediaPlayer.release();
         if (shuffle) {
             shuffle();
