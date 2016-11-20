@@ -51,6 +51,8 @@ public class PlaybackFragment extends Fragment {
         if (mListener.isInValidState()) {
             setInfo(mListener.getNowPlaying());
         }
+        else if(mListener.getNowPlaying() == null)
+            mListener.togglePlayback(null);
     }
 
     @Override

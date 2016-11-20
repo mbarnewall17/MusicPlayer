@@ -532,7 +532,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public int getCurrentPosition() {
-        return manager.getCurrentPosition();
+        return manager.getCurrentTimeOfSongPlayingInMS();
     }
 
     public void seekTo(int position) {

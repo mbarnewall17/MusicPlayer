@@ -37,6 +37,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
     private Repeat repeat;
     private int volume;
     private PowerManager.WakeLock wakeLock;
+    private Context context;
 
     public enum Repeat {
         NONE, REPEAT_SONG, REPEAT_ALL
@@ -47,6 +48,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
         this.nowPlayingPosition = nowPlayingPosition;
         this.nowPlaying = queue.get(nowPlayingPosition);
         this.listener = listener;
+        this.context = listener.getContext();
         isInValidState = false;
         shuffle = false;
         repeat = Repeat.NONE;
@@ -59,7 +61,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
         mediaPlayer.setOnPreparedListener(this);
         mediaPlayer.setOnErrorListener(this);
 
-        PowerManager powerManager = (PowerManager) listener.getContext().getSystemService(Context.POWER_SERVICE);
+        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, GlobalFunctions.TAG);
         wakeLock.acquire();
 
@@ -67,8 +69,8 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
     }
 
     private void setUpMediaSession() {
-        ComponentName mediaButtonReceiver = new ComponentName(listener.getContext(), RemoteControlReceiver.class);
-        mediaSession = new MediaSessionCompat(listener.getContext(), GlobalFunctions.TAG, mediaButtonReceiver, null);
+        ComponentName mediaButtonReceiver = new ComponentName(context, RemoteControlReceiver.class);
+        mediaSession = new MediaSessionCompat(context, GlobalFunctions.TAG, mediaButtonReceiver, null);
 
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mediaSession.setCallback(this);
@@ -84,7 +86,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
                         PlaybackStateCompat.ACTION_SKIP_TO_NEXT |
                         PlaybackStateCompat.ACTION_PLAY_PAUSE
                 )
-                .setState(isPlaying() ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, getCurrentPosition(), 1)
+                .setState(isPlaying() ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, getCurrentTimeOfSongPlayingInMS(), 1)
                 .build();
         mediaSession.setPlaybackState(playback);
     }
@@ -124,7 +126,8 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
         mediaPlayer.release();
-        wakeLock.release();
+        if (wakeLock.isHeld())
+            wakeLock.release();
         return false;
     }
 
@@ -136,14 +139,14 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
                     onPause();
                     break;
                 case AudioManager.AUDIOFOCUS_GAIN:
-                    ((AudioManager) listener.getContext().getSystemService(Context.AUDIO_SERVICE)).setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
+                    ((AudioManager) context.getSystemService(Context.AUDIO_SERVICE)).setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
                     onPlay();
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS:
                     onPause(); // TODO: This needs to be changed to onStop once saving state is implemented
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                    AudioManager audioManager = (AudioManager) listener.getContext().getSystemService(Context.AUDIO_SERVICE);
+                    AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
                     volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, (int) (volume * .5), 0);
                     break;
@@ -164,7 +167,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
     public void onPlay() {
         super.onPlay();
 
-        if (requestAudioFocus((AudioManager) listener.getContext().getSystemService(Context.AUDIO_SERVICE), onAudioFocusChangeListener)) {
+        if (requestAudioFocus((AudioManager) context.getSystemService(Context.AUDIO_SERVICE), onAudioFocusChangeListener)) {
             mediaPlayer.start();
             listener.songPlay();
             launchNotification(true);
@@ -234,7 +237,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
     }
 
     private void setMetadata(SongListViewItem item) {
-        MediaMetadataCompat metadata = new MediaMetadataCompat.Builder().putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, GlobalFunctions.getBitmapFromID(item.getAlbumID(), 300, listener.getContext()))
+        MediaMetadataCompat metadata = new MediaMetadataCompat.Builder().putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, GlobalFunctions.getBitmapFromID(item.getAlbumID(), 300, context))
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, item.getAlbumName())
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, item.getArtistName())
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, item.getTitle())
@@ -266,20 +269,10 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
         }
     }
 
-    /*
-     * Returns whether or not the song is playing
-     *
-     * @return  boolean A boolean indicating if the song is playing
-     */
     public boolean isPlaying() {
         return isInValidState ? mediaPlayer.isPlaying() : false;
     }
 
-    /*
-     * Plays the song in the queue at the given position
-     *
-     * @param   position    An int indicating which song in the queue to play
-     */
     public void playSongAtPosition(int position) {
         if (position > 0 && position < queue.size()) {
             stop();
@@ -289,45 +282,23 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
         }
     }
 
-    /*
-     * Returns the current song being played
-     *
-     * @return  nowPlaying  A SongListViewItem of the song that is playing
-     */
     public SongListViewItem getNowPlaying() {
         return nowPlaying;
     }
 
-    /*
-     * Returns the position in the queue of the song that is plying
-     *
-     * @return  int An int indicating the position in the queue of the song that is playing
-     */
     public int getNowPlayingPosition() {
         return nowPlayingPosition;
     }
 
-    /*
-     * Returns the duration of the playing song
-     *
-     * @return  int An int indicating the duration of the song in ms
-     */
     public int getDuration() {
         return mediaPlayer.getDuration();
     }
 
-    /*
-     * Returns the current time in the song being played in ms
-     *
-     * @return  int An int indicating the current time of the song in ms
-     */
-    public int getCurrentPosition() {
+    public int getCurrentTimeOfSongPlayingInMS() {
         return isInValidState ? mediaPlayer.getCurrentPosition() : 0;
     }
 
     public void onSeekTo(int pos) {
-        super.onSeekTo(pos);
-
         mediaPlayer.seekTo(pos);
     }
 
@@ -345,15 +316,6 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
 
     @Override
     public void onStop() {
-        super.onStop();
-
-        stop();
-        ((AudioManager) listener.getContext().getSystemService(Context.AUDIO_SERVICE)).abandonAudioFocus(onAudioFocusChangeListener);
-        mediaPlayer.release();
-        if (shuffle) {
-            shuffle();
-        }
-
         nowPlaying = null;
         nowPlayingPosition = 0;
         isInValidState = false;
@@ -362,10 +324,14 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
             listener.onFinish();
             listener.destroy();
         }
-        mediaSession.release();
-        NotificationManagement.removeNotification(listener.getContext());
 
-        wakeLock.release();
+        ((AudioManager) context.getSystemService(Context.AUDIO_SERVICE)).abandonAudioFocus(onAudioFocusChangeListener);
+        mediaPlayer.release();
+        mediaSession.release();
+        NotificationManagement.removeNotification(context);
+
+        if (wakeLock.isHeld())
+            wakeLock.release();
 
     }
 
@@ -377,10 +343,9 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
     public void removeSong(int position) {
 
         // If this is the only song, just stop the media player
-        if (queue.size() == 1) {
+        if (queue.size() == 1)
             onStop();
-            nowPlaying.setAnimated(false);
-        } else {
+        else {
 
             // If song is currently playing
             if (position == nowPlayingPosition) {
@@ -481,13 +446,13 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
         return repeat;
     }
 
-    public void launchNotification(boolean isPlaying) {
-        NotificationManagement.createNotification(listener.getContext(),
+    private void launchNotification(boolean isPlaying) {
+        NotificationManagement.createNotification(context,
                 listener.getApplicationName(),
                 nowPlaying.getTitle(),
                 nowPlaying.getArtistName(),
                 GlobalFunctions.getBitmapFromID(nowPlaying.getAlbumID(),
                         (int) listener.getContext().getResources().getDimension(R.dimen.layoutHeight),
-                        listener.getContext()), isPlaying);
+                        context), isPlaying);
     }
 }
