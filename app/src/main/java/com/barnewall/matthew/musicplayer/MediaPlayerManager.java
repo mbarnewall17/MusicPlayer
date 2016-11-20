@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.PowerManager;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -35,6 +36,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
     private ArrayList<SongListViewItem> alternateQueue;
     private Repeat repeat;
     private int volume;
+    private PowerManager.WakeLock wakeLock;
 
     public enum Repeat {
         NONE, REPEAT_SONG, REPEAT_ALL
@@ -56,6 +58,11 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
         mediaPlayer.setOnCompletionListener(this);
         mediaPlayer.setOnPreparedListener(this);
         mediaPlayer.setOnErrorListener(this);
+
+        PowerManager powerManager = (PowerManager) listener.getContext().getSystemService(Context.POWER_SERVICE);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, GlobalFunctions.TAG);
+        wakeLock.acquire();
+
         loadSong(nowPlaying);
     }
 
@@ -117,6 +124,7 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
         mediaPlayer.release();
+        wakeLock.release();
         return false;
     }
 
@@ -356,6 +364,9 @@ public class MediaPlayerManager extends MediaSessionCompat.Callback
         }
         mediaSession.release();
         NotificationManagement.removeNotification(listener.getContext());
+
+        wakeLock.release();
+
     }
 
     /*
